@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="medium_font_22">22sp</dimen>
-    <dimen name="base_margin_or_radius_16">16dp</dimen>
+    <dimen name="medium_font_16">16sp</dimen>
+    <dimen name="margin_16">16dp</dimen>
+    <dimen name="radius_16">16dp</dimen>
 </resources>

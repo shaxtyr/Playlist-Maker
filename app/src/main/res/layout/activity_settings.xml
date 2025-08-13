@@ -1,140 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:backgroundTint="@color/White"
     android:orientation="vertical"
-    android:backgroundTint="@color/YP_White">
+    tools:context=".SettingsActivity">
 
     <LinearLayout
-        android:layout_height="wrap_content"
         android:layout_width="match_parent"
-        android:orientation="horizontal"
-        android:layout_marginBottom="24dp">
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:orientation="horizontal">
 
-        <Button
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginStart="4dp"
-            android:layout_gravity="center"
-            android:backgroundTint="@color/YP_White"
-            app:icon="@drawable/arrow_back_vector"
-            app:iconGravity="textStart"
-            app:iconTint="@color/YP_Black"/>
+        <ImageView
+            android:id="@+id/back"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="@dimen/margin_16"
+            android:layout_marginBottom="20dp"
+            android:src="@drawable/arrow_back_vector" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
             android:layout_marginStart="12dp"
-            android:textColor="@color/YP_Black"
-            android:textSize="@dimen/medium_font_22"
-            android:text="@string/settings_main_screen"/>
+            android:layout_marginTop="14dp"
+            android:text="@string/settings_main_screen"
+            android:textColor="@color/Black"
+            android:textSize="@dimen/medium_font_22" />
 
     </LinearLayout>
 
     <LinearLayout
-        android:layout_height="wrap_content"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         tools:ignore="UselessParent">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="400"
-            android:paddingStart="@dimen/base_margin_or_radius_16"
             android:layout_gravity="center"
+            android:layout_weight="400"
             android:paddingVertical="21dp"
-            android:textColor="@color/YP_Black"
-            android:textSize="@dimen/base_margin_or_radius_16"
-            android:text="@string/dark_theme_settings"/>
+            android:paddingStart="@dimen/radius_16"
+            android:text="@string/dark_theme_settings"
+            android:textColor="@color/Black"
+            android:textSize="@dimen/medium_font_16" />
 
         <Switch
             android:layout_width="56dp"
             android:layout_height="40dp"
+            android:layout_gravity="center"
             android:layout_marginEnd="6dp"
-            android:layout_gravity="center"/>
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
 
     </LinearLayout>
 
     <LinearLayout
-        android:layout_height="wrap_content"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         tools:ignore="UselessParent">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="400"
-            android:paddingStart="@dimen/base_margin_or_radius_16"
             android:layout_gravity="center"
+            android:layout_weight="400"
             android:paddingVertical="21dp"
-            android:textColor="@color/YP_Black"
-            android:textSize="@dimen/base_margin_or_radius_16"
-            android:text="@string/share_app_settings"/>
+            android:paddingStart="@dimen/margin_16"
+            android:text="@string/share_app_settings"
+            android:textColor="@color/Black"
+            android:textSize="@dimen/medium_font_16" />
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/share_vector"
             android:layout_gravity="center"
-            android:layout_marginEnd="21dp" />
+            android:layout_marginEnd="21dp"
+            android:src="@drawable/share_vector" />
 
     </LinearLayout>
 
     <LinearLayout
-        android:layout_height="wrap_content"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         tools:ignore="UselessParent">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="400"
-            android:paddingStart="@dimen/base_margin_or_radius_16"
             android:layout_gravity="center"
+            android:layout_weight="400"
             android:paddingVertical="21dp"
-            android:textColor="@color/YP_Black"
-            android:textSize="@dimen/base_margin_or_radius_16"
-            android:text="@string/write_to_team_settings"/>
+            android:paddingStart="@dimen/margin_16"
+            android:text="@string/write_to_team_settings"
+            android:textColor="@color/Black"
+            android:textSize="@dimen/medium_font_16" />
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/support_group_vector"
             android:layout_gravity="center"
-            android:layout_marginEnd="21dp" />
+            android:layout_marginEnd="21dp"
+            android:src="@drawable/support_group_vector" />
 
     </LinearLayout>
 
     <LinearLayout
-        android:layout_height="wrap_content"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         tools:ignore="UselessParent">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="400"
-            android:paddingStart="@dimen/base_margin_or_radius_16"
             android:layout_gravity="center"
+            android:layout_weight="400"
             android:paddingVertical="21dp"
-            android:textColor="@color/YP_Black"
-            android:textSize="@dimen/base_margin_or_radius_16"
-            android:text="@string/user_doc_settings"/>
+            android:paddingStart="@dimen/margin_16"
+            android:text="@string/user_doc_settings"
+            android:textColor="@color/Black"
+            android:textSize="@dimen/medium_font_16" />
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/arrow_next_vector"
             android:layout_gravity="center"
-            android:layout_marginEnd="21dp" />
+            android:layout_marginEnd="21dp"
+            android:src="@drawable/arrow_next_vector" />
 
     </LinearLayout>
 
