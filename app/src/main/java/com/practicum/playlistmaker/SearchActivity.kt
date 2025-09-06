@@ -1,16 +1,14 @@
 package com.practicum.playlistmaker
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 
 class SearchActivity : AppCompatActivity() {
 
@@ -25,8 +23,7 @@ class SearchActivity : AppCompatActivity() {
         val editText = findViewById<EditText>(R.id.input_edit_text_search)
 
         backIcon.setOnClickListener {
-            val backIntent = Intent(this@SearchActivity, MainActivity::class.java)
-            startActivity(backIntent)
+            finish()
         }
 
         clearText.setOnClickListener {
@@ -41,21 +38,14 @@ class SearchActivity : AppCompatActivity() {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                clearText.visibility = clearButtonVisibility(p0)
+                clearText.isVisible = !p0.isNullOrEmpty()
                 currentText = p0.toString()
             }
 
             override fun afterTextChanged(p0: Editable?) {}
         }
         editText.addTextChangedListener(simpleTextWatcher)
-    }
 
-    private fun clearButtonVisibility(s: CharSequence?): Int {
-        return if (s.isNullOrEmpty()) {
-            View.GONE
-        } else {
-            View.VISIBLE
-        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

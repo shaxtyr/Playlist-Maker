@@ -4,8 +4,6 @@
     <!-- several_screens.xml -->
 
     <style name="TopStringStyle">
-        <item name="android:layout_marginBottom">@dimen/medium_font_16</item>
-        <item name="android:layout_gravity">center</item>
         <item name="android:textColor">@color/black</item>
         <item name="android:textSize">@dimen/medium_font_22</item>
         <item name="android:fontFamily">@font/ys_display_medium</item>
@@ -37,11 +35,7 @@
         <item name="android:textSize">@dimen/medium_font_16</item>
         <item name="android:fontFamily">@font/ys_display_regular</item>
         <item name="android:textFontWeight">400</item>
-    </style>
-
-    <style name="IcStyleSettingsScreen">
-        <item name="android:layout_gravity">center</item>
-        <item name="tint">@color/gray</item>
+        <item name="android:drawableTint">@color/gray</item>
     </style>
 
     <!-- activity_search.xml -->
