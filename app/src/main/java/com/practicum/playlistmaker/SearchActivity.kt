@@ -1,20 +1,65 @@
 package com.practicum.playlistmaker
 
+import android.content.Context
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 
 class SearchActivity : AppCompatActivity() {
+
+    private var currentText = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_search)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+
+        val backIcon = findViewById<ImageView>(R.id.back_from_settings)
+        val clearText = findViewById<ImageView>(R.id.button_clear)
+        val editText = findViewById<EditText>(R.id.input_edit_text_search)
+
+        backIcon.setOnClickListener {
+            finish()
         }
+
+        clearText.setOnClickListener {
+            editText.setText("")
+            editText.clearFocus()
+            val inputMethodManager =
+                getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            inputMethodManager?.hideSoftInputFromWindow(editText.windowToken, 0)
+        }
+
+        val simpleTextWatcher = object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                clearText.isVisible = !p0.isNullOrEmpty()
+                currentText = p0.toString()
+            }
+
+            override fun afterTextChanged(p0: Editable?) {}
+        }
+        editText.addTextChangedListener(simpleTextWatcher)
+
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(EDIT_KEY, currentText)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        currentText = savedInstanceState.getString(EDIT_KEY, EDIT_DEF)
+    }
+
+    companion object {
+        const val EDIT_KEY = "EDIT"
+        const val EDIT_DEF = ""
     }
 }

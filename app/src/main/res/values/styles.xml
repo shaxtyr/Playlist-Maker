@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- several_screens.xml -->
+
+    <style name="TopStringStyle">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/medium_font_22</item>
+        <item name="android:fontFamily">@font/ys_display_medium</item>
+        <item name="android:textFontWeight">500</item>
+    </style>
+
+    <!-- activity_main.xml -->
+
+    <style name="ButtonStyleMainScreen" parent="Widget.MaterialComponents.Button.UnelevatedButton">
+        <item name="android:backgroundTint">@color/white</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">@dimen/medium_font_22</item>
+        <item name="android:fontFamily">@font/ys_display_medium</item>
+        <item name="android:textFontWeight">500</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconTint">@color/black</item>
+        <item name="cornerRadius">@dimen/radius_16</item>
+    </style>
+
+    <!-- activity_setting.xml -->
+
+    <style name="BackStyleSettingsScreen">
+        <item name="tint">@color/black</item>
+    </style>
+
+    <style name="TextStyleSettingsScreen">
+        <item name="android:textColor">@color/black</item>ы
+        <item name="android:textSize">@dimen/medium_font_16</item>
+        <item name="android:fontFamily">@font/ys_display_regular</item>
+        <item name="android:textFontWeight">400</item>
+        <item name="android:drawableTint">@color/gray</item>
+    </style>
+
+    <!-- activity_search.xml -->
+
+    <style name="EditTextStyleSearchScreen">
+        <item name="android:maxLines">7</item>
+        <item name="android:maxLength">20</item>
+        <item name="android:inputType">text</item>
+        <item name="android:cursorVisible">true</item>
+        <item name="android:background">@null</item>
+        <item name="android:hint">@string/search</item>
+        <item name="android:drawableStart">@drawable/ic_search_16</item>
+        <item name="android:textColorHint">@color/gray</item>
+    </style>
+
+    <style name="IcSearchStyleSearchScreen">
+        <item name="android:src">@drawable/ic_search_16</item>
+        <item name="tint">@color/gray</item>
+    </style>
+
+    <style name="FrameEditStyleSearchScreen">
+        <item name="android:background">@drawable/background_rounded</item>
+    </style>
+
+    <style name="ClearStyleSearchScreen">
+        <item name="android:tint">@color/gray</item>
+    </style>
+</resources>

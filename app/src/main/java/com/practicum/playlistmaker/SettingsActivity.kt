@@ -2,9 +2,10 @@ package com.practicum.playlistmaker
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 
 class SettingsActivity: AppCompatActivity() {
 
@@ -12,11 +13,39 @@ class SettingsActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        val backIcon = findViewById<ImageView>(R.id.back)
+        val backIcon = findViewById<ImageView>(R.id.back_from_settings)
+        val shareApp = findViewById<TextView>(R.id.share_app)
+        val writeToSupport = findViewById<TextView>(R.id.write_to_support)
+        val getUserAgreement = findViewById<TextView>(R.id.user_agreement)
 
         backIcon.setOnClickListener {
-            val backIntent = Intent(this@SettingsActivity, MainActivity::class.java)
-            startActivity(backIntent)
+            finish()
+        }
+
+        getUserAgreement.setOnClickListener {
+            val link = getString(R.string.user_agreement)
+            val userIntent = Intent(Intent.ACTION_VIEW)
+            userIntent.data = link.toUri()
+            startActivity(userIntent)
+        }
+
+        shareApp.setOnClickListener {
+            val link = getString(R.string.android_developer_link)
+            val shareIntent = Intent(Intent.ACTION_SEND)
+            shareIntent.type = "text/plain"
+            shareIntent.putExtra(Intent.EXTRA_TEXT, link)
+            startActivity(shareIntent)
+        }
+
+        writeToSupport.setOnClickListener {
+            val subject = getString(R.string.to_developers)
+            val message = getString(R.string.thanks_to_developers)
+            val supportIntent = Intent(Intent.ACTION_SENDTO)
+            supportIntent.data = "mailto:".toUri()
+            supportIntent.putExtra(Intent.EXTRA_EMAIL, arrayOf(getString(R.string.my_email)))
+            supportIntent.putExtra(Intent.EXTRA_SUBJECT, subject)
+            supportIntent.putExtra(Intent.EXTRA_TEXT, message)
+            startActivity(supportIntent)
         }
     }
 }
