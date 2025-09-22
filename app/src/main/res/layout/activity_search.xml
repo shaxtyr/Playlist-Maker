@@ -3,8 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingStart="@dimen/medium_font_16"
-    android:paddingEnd="@dimen/medium_font_16"
     android:backgroundTint="?attr/colorSecondary"
     android:orientation="vertical"
     tools:context=".SearchActivity">
@@ -12,6 +10,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/medium_font_16"
+        android:layout_marginEnd="@dimen/medium_font_16"
         android:layout_marginBottom="4dp"
         android:orientation="horizontal">
 
@@ -40,6 +40,9 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_16"
+        android:layout_marginEnd="@dimen/margin_16"
+        android:layout_marginBottom="@dimen/margin_16"
         style="@style/FrameEditStyleSearchScreen">
 
         <EditText
@@ -65,5 +68,11 @@
             style="@style/ClearStyleSearchScreen"/>
 
     </FrameLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewSearch"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="12dp"/>
 
 </LinearLayout>
