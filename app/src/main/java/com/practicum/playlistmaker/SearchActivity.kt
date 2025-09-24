@@ -9,6 +9,8 @@ import android.widget.EditText
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 class SearchActivity : AppCompatActivity() {
 
@@ -18,9 +20,43 @@ class SearchActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
 
+
+        val trackList = listOf<Track>(
+            Track(
+                getString(R.string.track_name_track1),
+                getString(R.string.artist_name_track1),
+                getString(R.string.track_time_track1),
+                getString(R.string.artwork_url_track1)),
+            Track(
+                getString(R.string.track_name_track2),
+                getString(R.string.artist_name_track2),
+                getString(R.string.track_time_track2),
+                getString(R.string.artwork_url_track2)),
+            Track(
+                getString(R.string.track_name_track3),
+                getString(R.string.artist_name_track3),
+                getString(R.string.track_time_track3),
+                getString(R.string.artwork_url_track3)),
+            Track(
+                getString(R.string.track_name_track4),
+                getString(R.string.artist_name_track4),
+                getString(R.string.track_time_track4),
+                getString(R.string.artwork_url_track4)),
+            Track(
+                getString(R.string.track_name_track5),
+                getString(R.string.artist_name_track5),
+                getString(R.string.track_time_track5),
+                getString(R.string.artwork_url_track5))
+        )
+
         val backIcon = findViewById<ImageView>(R.id.back_from_settings)
         val clearText = findViewById<ImageView>(R.id.button_clear)
         val editText = findViewById<EditText>(R.id.input_edit_text_search)
+
+        val recycleView = findViewById<RecyclerView>(R.id.recyclerViewSearch)
+        recycleView.layoutManager = LinearLayoutManager(this)
+        val trackAdapter = TrackAdapter(trackList)
+        recycleView.adapter = trackAdapter
 
         backIcon.setOnClickListener {
             finish()
