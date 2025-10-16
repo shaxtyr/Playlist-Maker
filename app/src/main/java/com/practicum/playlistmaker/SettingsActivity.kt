@@ -6,6 +6,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
+import com.google.android.material.switchmaterial.SwitchMaterial
 
 class SettingsActivity: AppCompatActivity() {
 
@@ -17,6 +18,12 @@ class SettingsActivity: AppCompatActivity() {
         val shareApp = findViewById<TextView>(R.id.share_app)
         val writeToSupport = findViewById<TextView>(R.id.write_to_support)
         val getUserAgreement = findViewById<TextView>(R.id.user_agreement)
+        val themeSwitcher = findViewById<SwitchMaterial>(R.id.theme_switcher)
+        themeSwitcher.isChecked = (applicationContext as App).darkTheme
+
+        themeSwitcher.setOnCheckedChangeListener { switcher, checked ->
+            (applicationContext as App).switchTheme(checked)
+        }
 
         backIcon.setOnClickListener {
             finish()
