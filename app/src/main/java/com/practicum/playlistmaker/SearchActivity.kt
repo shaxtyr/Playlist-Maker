@@ -1,11 +1,12 @@
 package com.practicum.playlistmaker
 
 import android.content.Context
-import android.content.res.Configuration
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
@@ -25,24 +26,28 @@ import retrofit2.converter.gson.GsonConverterFactory
 class SearchActivity : AppCompatActivity() {
 
     private var currentText = ""
-    private val itunesBaseUrl = "https://itunes.apple.com"
     private val retrofit = Retrofit.Builder()
-        .baseUrl(itunesBaseUrl)
+        .baseUrl(ITUNES_BASE_URL)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
     private val itunesService = retrofit.create(iTunesApi::class.java)
 
     private lateinit var backIcon: ImageView
     private lateinit var clearText: ImageView
+    private lateinit var clearHistory: Button
     private lateinit var editText: EditText
     private lateinit var placeholderImage: ImageView
     private lateinit var placeholderMessage: TextView
     private lateinit var placeholderButton: Button
+    private lateinit var viewGroupHistoryHint: ViewGroup
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var searchHistory: SearchHistory
+    private lateinit var trackAdapter: TrackAdapter
+    private lateinit var historyTrackAdapter: TrackAdapter
+    private lateinit var listener: SharedPreferences.OnSharedPreferenceChangeListener
 
     private val trackList = ArrayList<Track>()
-    private val trackAdapter = TrackAdapter(trackList)
-
-
+    private val historyTrackList = ArrayList<Track>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,17 +56,56 @@ class SearchActivity : AppCompatActivity() {
         backIcon = findViewById(R.id.back_from_settings)
         clearText = findViewById(R.id.button_clear)
         editText = findViewById(R.id.input_edit_text_search)
+        clearHistory = findViewById(R.id.clear_history)
 
         placeholderImage = findViewById(R.id.placeholderImage)
         placeholderMessage = findViewById(R.id.placeholderMessage)
         placeholderButton = findViewById(R.id.placeholderButton)
+        viewGroupHistoryHint = findViewById(R.id.view_group_history_hint)
+
+        sharedPreferences = getSharedPreferences(TRACK_HISTORY_PREFERENCES, MODE_PRIVATE)
+        searchHistory = SearchHistory(sharedPreferences)
+
+        trackAdapter = TrackAdapter(trackList, searchHistory, false)
+        historyTrackAdapter = TrackAdapter(historyTrackList, searchHistory, true)
+
+        historyTrackList.clear()
+        historyTrackList.addAll(searchHistory.getHistory())
+        historyTrackAdapter.notifyDataSetChanged()
+        if (historyTrackList.isNotEmpty()) {
+            viewGroupHistoryHint.visibility = View.VISIBLE
+        } else {
+            viewGroupHistoryHint.visibility = View.GONE
+        }
 
         val recycleView = findViewById<RecyclerView>(R.id.recyclerViewSearch)
         recycleView.layoutManager = LinearLayoutManager(this)
         recycleView.adapter = trackAdapter
 
+        val recycleViewHistory = findViewById<RecyclerView>(R.id.recycler_view_history)
+        recycleViewHistory.layoutManager = LinearLayoutManager(this)
+        recycleViewHistory.adapter = historyTrackAdapter
+
+        listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+            if (key == NEW_TRACK_KEY) {
+                historyTrackList.clear()
+                historyTrackList.addAll(searchHistory.getHistory())
+                historyTrackAdapter.notifyDataSetChanged()
+            }
+        }
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+
         backIcon.setOnClickListener {
             finish()
+        }
+
+        clearHistory.setOnClickListener {
+            historyTrackList.clear()
+            historyTrackAdapter.notifyDataSetChanged()
+            sharedPreferences.edit()
+                .clear()
+                .apply()
+            viewGroupHistoryHint.visibility = View.GONE
         }
 
         clearText.setOnClickListener {
@@ -80,27 +124,23 @@ class SearchActivity : AppCompatActivity() {
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
                 clearText.isVisible = !p0.isNullOrEmpty()
                 currentText = p0.toString()
+                viewGroupHistoryHint.visibility = if (editText.hasFocus() && p0?.isEmpty() == true) View.VISIBLE else View.GONE
             }
 
             override fun afterTextChanged(p0: Editable?) {}
         }
         editText.addTextChangedListener(simpleTextWatcher)
 
-        val isDarkTheme = run {
-            val uiMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-            uiMode == Configuration.UI_MODE_NIGHT_YES
-        }
-
         editText.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
-                search(isDarkTheme)
+                search()
                 true
             }
             false
         }
 
         placeholderButton.setOnClickListener {
-            search(isDarkTheme)
+            search()
         }
     }
 
@@ -114,32 +154,31 @@ class SearchActivity : AppCompatActivity() {
         currentText = savedInstanceState.getString(EDIT_KEY, EDIT_DEF)
     }
 
-    private fun search(theme: Boolean) {
+    private fun search() {
         itunesService.search(editText.text.toString())
             .enqueue(object : Callback<TracksResponce> {
                 override fun onResponse(
                     call: Call<TracksResponce>,
                     response: Response<TracksResponce>
                 ) {
-                    when (response.code()) {
-                        200 -> {
-                            trackList.clear()
-                            if (response.body()?.results?.isNotEmpty() == true) {
-                                trackList.addAll(response.body()?.results!!)
-                                trackAdapter.notifyDataSetChanged()
-                            }
-                            if (trackList.isEmpty()) {
-                                showMessage(getString(R.string.nothing_found), if (theme) R.drawable.ic_nothing_night_120 else R.drawable.ic_nothing_120)
-                            } else {
-                                showMessage("", 0)
-                            }
+                    if (response.isSuccessful) {
+                        trackList.clear()
+                        if (response.body()?.results?.isNotEmpty() == true) {
+                            trackList.addAll(response.body()?.results!!)
+                            trackAdapter.notifyDataSetChanged()
                         }
-                        else -> showMessage(getString(R.string.communication_problems), if (theme) R.drawable.ic_no_connection_night_120 else R.drawable.ic_no_connection_120)
+                        if (trackList.isEmpty()) {
+                            showMessage(getString(R.string.nothing_found), R.drawable.ic_nothing_120)
+                        } else {
+                            showMessage("", 0)
+                        }
+                    } else {
+                        showMessage(getString(R.string.communication_problems), R.drawable.ic_no_connection_120)
                     }
                 }
 
                 override fun onFailure(call: Call<TracksResponce>, t: Throwable) {
-                    showMessage(getString(R.string.communication_problems), if (theme) R.drawable.ic_no_connection_night_120 else R.drawable.ic_no_connection_120)
+                    showMessage(getString(R.string.communication_problems), R.drawable.ic_no_connection_120)
                 }
             })
     }
@@ -150,12 +189,11 @@ class SearchActivity : AppCompatActivity() {
             placeholderImage.visibility = View.VISIBLE
             placeholderMessage.visibility = View.VISIBLE
 
-            if (image == R.drawable.ic_nothing_120 || image == R.drawable.ic_nothing_night_120) {
+            if (image == R.drawable.ic_nothing_120) {
                 placeholderButton.visibility = View.GONE
             } else {
                 placeholderButton.visibility = View.VISIBLE
             }
-
 
             trackList.clear()
             trackAdapter.notifyDataSetChanged()
@@ -173,5 +211,8 @@ class SearchActivity : AppCompatActivity() {
     companion object {
         const val EDIT_KEY = "EDIT"
         const val EDIT_DEF = ""
+        const val ITUNES_BASE_URL = "https://itunes.apple.com"
+        const val TRACK_HISTORY_PREFERENCES = "track_history_preferences"
+        const val NEW_TRACK_KEY = "key_for_new_track"
     }
 }

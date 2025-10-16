@@ -77,6 +77,43 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/view_group_history_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="24dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="18dp"
+            android:paddingBottom="12dp"
+            android:layout_gravity="center"
+            android:text="@string/you_searched"
+            style="@style/TextYouSearchedStyleSearchScreen"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view_history"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="24dp"/>
+
+        <Button
+            android:id="@+id/clear_history"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_gravity="center"
+            android:text="@string/clear_history"
+            style="@style/PlaceholderButtonStyleSearchScreen" />
+
+    </LinearLayout>
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -100,6 +137,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:paddingBottom="16dp"
+                android:visibility="invisible"
                 tools:src="@tools:sample/avatars"/>
 
             <TextView android:id="@+id/placeholderMessage"

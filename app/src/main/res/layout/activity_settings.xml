@@ -37,24 +37,14 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/theme_switcher"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:paddingVertical="21dp"
-            android:text="@string/dark_theme_settings"
-            style="@style/TextStyleSettingsScreen" />
-
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-    </LinearLayout>
+        android:layout_gravity="start"
+        android:paddingVertical="21dp"
+        android:text="@string/dark_theme_settings"
+        style="@style/SwitchStyleSettingsScreen" />
 
     <TextView
         android:id="@+id/share_app"
