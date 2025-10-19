@@ -6,12 +6,12 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
-import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -39,7 +39,7 @@ class SearchActivity : AppCompatActivity() {
     private lateinit var placeholderImage: ImageView
     private lateinit var placeholderMessage: TextView
     private lateinit var placeholderButton: Button
-    private lateinit var viewGroupHistoryHint: ViewGroup
+    private lateinit var viewGroupHistoryHint: LinearLayout
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var searchHistory: SearchHistory
     private lateinit var trackAdapter: TrackAdapter
@@ -100,11 +100,11 @@ class SearchActivity : AppCompatActivity() {
         }
 
         clearHistory.setOnClickListener {
-            historyTrackList.clear()
-            historyTrackAdapter.notifyDataSetChanged()
             sharedPreferences.edit()
                 .clear()
                 .apply()
+            historyTrackList.clear()
+            historyTrackAdapter.notifyDataSetChanged()
             viewGroupHistoryHint.visibility = View.GONE
         }
 
@@ -118,13 +118,19 @@ class SearchActivity : AppCompatActivity() {
             trackAdapter.notifyDataSetChanged()
         }
 
+        editText.setOnFocusChangeListener { view, hasFocus ->
+            viewGroupHistoryHint.visibility = if (hasFocus && editText.text.isEmpty() && historyTrackList.isNotEmpty()) View.VISIBLE else View.GONE
+        }
+
         val simpleTextWatcher = object : TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
                 clearText.isVisible = !p0.isNullOrEmpty()
                 currentText = p0.toString()
-                viewGroupHistoryHint.visibility = if (editText.hasFocus() && p0?.isEmpty() == true) View.VISIBLE else View.GONE
+                viewGroupHistoryHint.visibility = if (editText.hasFocus() && p0?.isEmpty() == true && historyTrackList.isNotEmpty()) View.VISIBLE else View.GONE
+                trackList.clear()
+                trackAdapter.notifyDataSetChanged()
             }
 
             override fun afterTextChanged(p0: Editable?) {}
@@ -169,16 +175,19 @@ class SearchActivity : AppCompatActivity() {
                             trackAdapter.notifyDataSetChanged()
                         }
                         if (trackList.isEmpty()) {
+                            viewGroupHistoryHint.visibility = View.GONE
                             showMessage(getString(R.string.nothing_found), R.drawable.ic_nothing_120)
                         } else {
                             showMessage("", 0)
                         }
                     } else {
+                        viewGroupHistoryHint.visibility = View.GONE
                         showMessage(getString(R.string.communication_problems), R.drawable.ic_no_connection_120)
                     }
                 }
 
                 override fun onFailure(call: Call<TracksResponce>, t: Throwable) {
+                    viewGroupHistoryHint.visibility = View.GONE
                     showMessage(getString(R.string.communication_problems), R.drawable.ic_no_connection_120)
                 }
             })
