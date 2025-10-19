@@ -5,6 +5,8 @@ import com.google.gson.Gson
 
 class SearchHistory(val sharedPreferences: SharedPreferences) {
 
+    private val json = Gson()
+
     fun clearHistory() {
         sharedPreferences.edit()
             .clear()
@@ -42,7 +44,7 @@ class SearchHistory(val sharedPreferences: SharedPreferences) {
     }
 
     private fun createJsonFromTrackList(historyTrackList: ArrayList<Track>): String {
-        return Gson().toJson(historyTrackList)
+        return json.toJson(historyTrackList)
     }
 
     private fun createTrackListFromJson(json: String): Array<Track> {

@@ -163,8 +163,9 @@ class SearchActivity : AppCompatActivity() {
                 ) {
                     if (response.isSuccessful) {
                         trackList.clear()
-                        if (response.body()?.results?.isNotEmpty() == true) {
-                            trackList.addAll(response.body()?.results!!)
+                        val responseBodyResults = response.body()?.results
+                        if (responseBodyResults?.isNotEmpty() == true) {
+                            trackList.addAll(responseBodyResults)
                             trackAdapter.notifyDataSetChanged()
                         }
                         if (trackList.isEmpty()) {

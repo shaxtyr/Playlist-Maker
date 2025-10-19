@@ -7,6 +7,7 @@ import androidx.core.content.edit
 class App: Application() {
 
     var darkTheme = false
+    private set
 
     override fun onCreate() {
         super.onCreate()
@@ -31,7 +32,7 @@ class App: Application() {
     }
 
     companion object {
-        const val THEME_APP_PREFERENCES = "theme_app_preferences"
-        const val THEME_APP_KEY = "dark_theme"
+        private const val THEME_APP_PREFERENCES = "theme_app_preferences"
+        private const val THEME_APP_KEY = "dark_theme"
     }
 }
