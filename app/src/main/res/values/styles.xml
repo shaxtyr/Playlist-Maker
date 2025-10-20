@@ -31,7 +31,7 @@
     </style>
 
     <style name="TextStyleSettingsScreen">
-        <item name="android:textColor">@color/black</item>ы
+        <item name="android:textColor">@color/black</item>
         <item name="android:textSize">@dimen/medium_font_16</item>
         <item name="android:fontFamily">@font/ys_display_regular</item>
         <item name="android:textFontWeight">400</item>

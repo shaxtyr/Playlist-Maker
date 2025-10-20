@@ -7,7 +7,9 @@
     android:paddingStart="@dimen/medium_font_16"
     android:paddingEnd="12dp"
     android:orientation="vertical"
-    tools:context=".SettingsActivity">
+    android:background="?attr/colorSecondary"
+    tools:context=".SettingsActivity"
+    tools:theme="@style/Base.Theme.PlaylistMaker">
 
     <LinearLayout
         android:layout_width="match_parent"
