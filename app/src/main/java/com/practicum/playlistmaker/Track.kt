@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
 data class Track(
+    val previewUrl: String,
     val collectionName: String,                                                 //альбом
     val releaseDate: String,                                                    //дата релиза
     val primaryGenreName: String,                                               //жанр

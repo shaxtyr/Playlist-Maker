@@ -3,6 +3,8 @@ package com.practicum.playlistmaker
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
@@ -12,6 +14,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -39,6 +42,7 @@ class SearchActivity : AppCompatActivity() {
     private lateinit var placeholderImage: ImageView
     private lateinit var placeholderMessage: TextView
     private lateinit var placeholderButton: Button
+    private lateinit var progressBar: ProgressBar
     private lateinit var viewGroupHistoryHint: LinearLayout
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var searchHistory: SearchHistory
@@ -49,6 +53,9 @@ class SearchActivity : AppCompatActivity() {
     private val trackList = ArrayList<Track>()
     private val historyTrackList = ArrayList<Track>()
 
+    private val handler = Handler(Looper.getMainLooper())
+    private val searchRunnable = Runnable { search() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
@@ -58,6 +65,7 @@ class SearchActivity : AppCompatActivity() {
         editText = findViewById(R.id.input_edit_text_search)
         clearHistory = findViewById(R.id.clear_history)
 
+        progressBar = findViewById(R.id.progressBar)
         placeholderImage = findViewById(R.id.placeholderImage)
         placeholderMessage = findViewById(R.id.placeholderMessage)
         placeholderButton = findViewById(R.id.placeholderButton)
@@ -133,7 +141,11 @@ class SearchActivity : AppCompatActivity() {
                 trackAdapter.notifyDataSetChanged()
             }
 
-            override fun afterTextChanged(p0: Editable?) {}
+            override fun afterTextChanged(p0: Editable?) {
+                if (!p0.isNullOrEmpty()) {
+                    searchDebounce()
+                }
+            }
         }
         editText.addTextChangedListener(simpleTextWatcher)
 
@@ -161,12 +173,17 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun search() {
+
+        //placeholderMessage.visibility = View.GONE
+        progressBar.visibility = View.VISIBLE
+
         itunesService.search(editText.text.toString())
             .enqueue(object : Callback<TracksResponce> {
                 override fun onResponse(
                     call: Call<TracksResponce>,
                     response: Response<TracksResponce>
                 ) {
+                    progressBar.visibility = View.GONE
                     if (response.isSuccessful) {
                         trackList.clear()
                         val responseBodyResults = response.body()?.results
@@ -187,6 +204,7 @@ class SearchActivity : AppCompatActivity() {
                 }
 
                 override fun onFailure(call: Call<TracksResponce>, t: Throwable) {
+                    progressBar.visibility = View.GONE
                     viewGroupHistoryHint.visibility = View.GONE
                     showMessage(getString(R.string.communication_problems), R.drawable.ic_no_connection_120)
                 }
@@ -217,6 +235,10 @@ class SearchActivity : AppCompatActivity() {
             placeholderButton.visibility = View.GONE
         }
     }
+    private fun searchDebounce() {
+        handler.removeCallbacks(searchRunnable)
+        handler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY)
+    }
 
     companion object {
         const val EDIT_KEY = "EDIT"
@@ -224,5 +246,6 @@ class SearchActivity : AppCompatActivity() {
         const val ITUNES_BASE_URL = "https://itunes.apple.com"
         const val TRACK_HISTORY_PREFERENCES = "track_history_preferences"
         const val NEW_TRACK_KEY = "key_for_new_track"
+        const val  SEARCH_DEBOUNCE_DELAY = 2000L
     }
 }
