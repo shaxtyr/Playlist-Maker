@@ -13,6 +13,7 @@ import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.constraintlayout.widget.Group
+import androidx.core.view.isVisible
 import kotlinx.coroutines.Runnable
 
 class AudioPlayerActivity: AppCompatActivity() {
@@ -60,13 +61,13 @@ class AudioPlayerActivity: AppCompatActivity() {
         )
 
         if (openTrack.collectionName.isEmpty()) {
-            albumGroup.visibility = View.GONE
+            albumGroup.isVisible = false
         } else {
-            albumGroup.visibility = View.VISIBLE
+            albumGroup.isVisible = true
             albumValueAudioPlayer.text = openTrack.collectionName
         }
 
-        yearGroup.visibility = View.VISIBLE
+        yearGroup.isVisible = true
         yearValueAudioPlayer.text = openTrack.getYearFromReleaseDate()
 
         genreValueAudioPlayer.text = openTrack.primaryGenreName
