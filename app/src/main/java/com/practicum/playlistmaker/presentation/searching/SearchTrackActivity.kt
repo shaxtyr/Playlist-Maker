@@ -1,8 +1,7 @@
-package com.practicum.playlistmaker
+package com.practicum.playlistmaker.presentation.searching
 
-import android.content.Context
+import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -20,21 +19,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import com.practicum.playlistmaker.R
+import com.practicum.playlistmaker.creater.Creator
+import com.practicum.playlistmaker.data.network.ResponseStatus
+import com.practicum.playlistmaker.domain.interactor.StatusException
+import com.practicum.playlistmaker.domain.entity.Track
+import com.practicum.playlistmaker.domain.interactor.TracksHistoryInteractor
+import com.practicum.playlistmaker.domain.interactor.TracksInteractor
+import com.practicum.playlistmaker.presentation.audioplayer.AudioPlayerActivity
 
-class SearchActivity : AppCompatActivity() {
+class SearchTrackActivity : AppCompatActivity() {
 
+    private lateinit var tracksInteractor: TracksInteractor
+    private lateinit var historyInteractor: TracksHistoryInteractor
     private var currentText = ""
-    private val retrofit = Retrofit.Builder()
-        .baseUrl(ITUNES_BASE_URL)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-    private val itunesService = retrofit.create(iTunesApi::class.java)
-
     private lateinit var backIcon: ImageView
     private lateinit var clearText: ImageView
     private lateinit var clearHistory: Button
@@ -44,15 +42,10 @@ class SearchActivity : AppCompatActivity() {
     private lateinit var placeholderButton: Button
     private lateinit var progressBar: ProgressBar
     private lateinit var viewGroupHistoryHint: LinearLayout
-    private lateinit var sharedPreferences: SharedPreferences
-    private lateinit var searchHistory: SearchHistory
-    private lateinit var trackAdapter: TrackAdapter
-    private lateinit var historyTrackAdapter: TrackAdapter
-    private lateinit var listener: SharedPreferences.OnSharedPreferenceChangeListener
-
+    private lateinit var trackAdapter: SearchTrackAdapter
+    private lateinit var historyTrackAdapter: SearchTrackAdapter
     private val trackList = ArrayList<Track>()
     private val historyTrackList = ArrayList<Track>()
-
     private val handler = Handler(Looper.getMainLooper())
     private val searchRunnable = Runnable { search() }
     private var isClickAllowed = true
@@ -60,6 +53,9 @@ class SearchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
+
+        tracksInteractor = Creator.provideTracksInteractor()
+        historyInteractor = Creator.provideTracksHistoryInteractor()
 
         backIcon = findViewById(R.id.back_from_settings)
         clearText = findViewById(R.id.button_clear)
@@ -72,26 +68,25 @@ class SearchActivity : AppCompatActivity() {
         placeholderButton = findViewById(R.id.placeholderButton)
         viewGroupHistoryHint = findViewById(R.id.view_group_history_hint)
 
-        sharedPreferences = getSharedPreferences(TRACK_HISTORY_PREFERENCES, MODE_PRIVATE)
-        searchHistory = SearchHistory(sharedPreferences)
-
-        trackAdapter = TrackAdapter(trackList, searchHistory, false, onClickDebounce = { position ->
-           if (clickDebounce()) {
-               val audioPlayerIntent = Intent(this, AudioPlayerActivity::class.java)
-               audioPlayerIntent.putExtra(OPEN_TRACK_KEY, trackList[position])
-               startActivity(audioPlayerIntent)
-           }
-        })
-        historyTrackAdapter = TrackAdapter(historyTrackList, searchHistory, true, onClickDebounce = { position ->
+        trackAdapter = SearchTrackAdapter(trackList,
+            historyInteractor, false, onClickDebounce = { position ->
             if (clickDebounce()) {
                 val audioPlayerIntent = Intent(this, AudioPlayerActivity::class.java)
-                audioPlayerIntent.putExtra(OPEN_TRACK_KEY, historyTrackList[position])
+                audioPlayerIntent.putExtra(OPEN_TRACK_KEY, trackList[position])
                 startActivity(audioPlayerIntent)
             }
         })
+        historyTrackAdapter = SearchTrackAdapter(historyTrackList,
+            historyInteractor, true, onClickDebounce = { position ->
+                if (clickDebounce()) {
+                    val audioPlayerIntent = Intent(this, AudioPlayerActivity::class.java)
+                    audioPlayerIntent.putExtra(OPEN_TRACK_KEY, historyTrackList[position])
+                    startActivity(audioPlayerIntent)
+                }
+            })
 
         historyTrackList.clear()
-        historyTrackList.addAll(searchHistory.getHistory())
+        historyTrackList.addAll(historyInteractor.getHistory())
         historyTrackAdapter.notifyDataSetChanged()
         if (historyTrackList.isNotEmpty()) {
             viewGroupHistoryHint.isVisible = true
@@ -107,23 +102,20 @@ class SearchActivity : AppCompatActivity() {
         recycleViewHistory.layoutManager = LinearLayoutManager(this)
         recycleViewHistory.adapter = historyTrackAdapter
 
-        listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
-            if (key == NEW_TRACK_KEY) {
+        historyInteractor.setListener {
+            runOnUiThread {
                 historyTrackList.clear()
-                historyTrackList.addAll(searchHistory.getHistory())
+                historyTrackList.addAll(historyInteractor.getHistory())
                 historyTrackAdapter.notifyDataSetChanged()
             }
         }
-        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
 
         backIcon.setOnClickListener {
             finish()
         }
 
         clearHistory.setOnClickListener {
-            sharedPreferences.edit()
-                .clear()
-                .apply()
+            historyInteractor.clearHistory()
             historyTrackList.clear()
             historyTrackAdapter.notifyDataSetChanged()
             viewGroupHistoryHint.isVisible = false
@@ -133,7 +125,7 @@ class SearchActivity : AppCompatActivity() {
             editText.setText("")
             editText.clearFocus()
             val inputMethodManager =
-                getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
             inputMethodManager?.hideSoftInputFromWindow(editText.windowToken, 0)
             trackList.clear()
             trackAdapter.notifyDataSetChanged()
@@ -185,42 +177,58 @@ class SearchActivity : AppCompatActivity() {
         currentText = savedInstanceState.getString(EDIT_KEY, EDIT_DEF)
     }
 
+    @SuppressLint("SuspiciousIndentation")
     private fun search() {
-
         progressBar.isVisible = true
 
-        itunesService.search(editText.text.toString())
-            .enqueue(object : Callback<TracksResponce> {
-                override fun onResponse(
-                    call: Call<TracksResponce>,
-                    response: Response<TracksResponce>
-                ) {
-                    progressBar.isVisible = false
-                    if (response.isSuccessful) {
-                        trackList.clear()
-                        val responseBodyResults = response.body()?.results
-                        if (responseBodyResults?.isNotEmpty() == true) {
-                            trackList.addAll(responseBodyResults)
-                            trackAdapter.notifyDataSetChanged()
+            tracksInteractor.searchTracks(
+                editText.text.toString(),
+                object : TracksInteractor.TracksConsumer {
+                    override fun consume(foundTracks: List<Track>) {
+                        runOnUiThread {
+                            progressBar.isVisible = false
+                            if (foundTracks.isNotEmpty()) {
+                                trackList.clear()
+                                trackList.addAll(foundTracks)
+                                trackAdapter.notifyDataSetChanged()
+                            }
+                            if (trackList.isEmpty()) {
+                                viewGroupHistoryHint.isVisible = false
+                                showMessage(
+                                    getString(R.string.nothing_found),
+                                    R.drawable.ic_nothing_120
+                                )
+                            } else {
+                                showMessage("", 0)
+                            }
                         }
-                        if (trackList.isEmpty()) {
-                            viewGroupHistoryHint.isVisible = false
-                            showMessage(getString(R.string.nothing_found), R.drawable.ic_nothing_120)
-                        } else {
-                            showMessage("", 0)
-                        }
-                    } else {
-                        viewGroupHistoryHint.isVisible = false
-                        showMessage(getString(R.string.communication_problems), R.drawable.ic_no_connection_120)
                     }
-                }
 
-                override fun onFailure(call: Call<TracksResponce>, t: Throwable) {
-                    progressBar.isVisible = false
-                    viewGroupHistoryHint.isVisible = false
-                    showMessage(getString(R.string.communication_problems), R.drawable.ic_no_connection_120)
-                }
-            })
+                    override fun onError(e: StatusException) {
+                        runOnUiThread {
+                            progressBar.isVisible = false
+                            viewGroupHistoryHint.isVisible = false
+                            when (e.status) {
+                                ResponseStatus.BAD_REQUEST -> {
+                                    progressBar.isVisible = false
+                                    viewGroupHistoryHint.isVisible = false
+                                    showMessage(
+                                        getString(R.string.communication_problems),
+                                        R.drawable.ic_no_connection_120
+                                    )
+                                }
+
+                                ResponseStatus.ERROR -> {
+                                    viewGroupHistoryHint.isVisible = false
+                                    showMessage(
+                                        getString(R.string.communication_problems),
+                                        R.drawable.ic_no_connection_120
+                                    )
+                                }
+                            }
+                        }
+                    }
+                })
     }
 
     private fun showMessage(text: String, image: Int) {
@@ -265,10 +273,7 @@ class SearchActivity : AppCompatActivity() {
         const val OPEN_TRACK_KEY = "open_track"
         const val EDIT_KEY = "EDIT"
         const val EDIT_DEF = ""
-        const val ITUNES_BASE_URL = "https://itunes.apple.com"
-        const val TRACK_HISTORY_PREFERENCES = "track_history_preferences"
-        const val NEW_TRACK_KEY = "key_for_new_track"
         const val CLICK_DEBOUNCE_DELAY = 1000L
-        const val  SEARCH_DEBOUNCE_DELAY = 2000L
+        const val SEARCH_DEBOUNCE_DELAY = 2000L
     }
 }

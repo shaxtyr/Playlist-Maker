@@ -2,7 +2,7 @@ package com.practicum.playlistmaker
 
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.edit
+import com.practicum.playlistmaker.creater.Creator
 
 class App: Application() {
 
@@ -11,6 +11,9 @@ class App: Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        Creator.initApplication(this)
+
         val sharedPrefs = getSharedPreferences(THEME_APP_PREFERENCES, MODE_PRIVATE)
         darkTheme = sharedPrefs.getBoolean(THEME_APP_KEY, false)
         switchTheme(darkTheme)
@@ -27,7 +30,6 @@ class App: Application() {
             } else {
                 AppCompatDelegate.MODE_NIGHT_NO
             }
-
         )
     }
 
