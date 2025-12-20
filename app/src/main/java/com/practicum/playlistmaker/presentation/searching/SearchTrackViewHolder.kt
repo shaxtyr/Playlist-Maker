@@ -29,7 +29,6 @@ class SearchTrackViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) 
         nameTrack.text = model.trackName
         artistName.text = model.artistName
         timeTrack.text = model.trackTime
-        //SimpleDateFormat("mm:ss", Locale.getDefault()).format(model.trackTime)
     }
 
     fun dpToPx(dp: Float, context: Context): Int {

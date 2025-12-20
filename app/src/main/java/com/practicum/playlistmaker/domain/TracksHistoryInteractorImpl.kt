@@ -11,7 +11,13 @@ class TracksHistoryInteractorImpl(private val repository: TracksLocalRepository)
     }
 
     override fun addTrack(track: Track) {
-        repository.addToHistory(track)
+        val currentHistoryTrackList = getHistory().toMutableList()
+        currentHistoryTrackList.removeAll { it.trackId == track.trackId }
+        if (currentHistoryTrackList.size >= 10) {
+            currentHistoryTrackList.removeAt(currentHistoryTrackList.size - 1)
+        }
+        currentHistoryTrackList.add(0, track)
+        repository.saveHistory(currentHistoryTrackList)
     }
 
     override fun clearHistory() {

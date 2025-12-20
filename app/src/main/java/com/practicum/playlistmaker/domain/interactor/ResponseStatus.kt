@@ -1,4 +1,4 @@
-package com.practicum.playlistmaker.data.network
+package com.practicum.playlistmaker.domain.interactor
 
 enum class ResponseStatus {
     BAD_REQUEST,

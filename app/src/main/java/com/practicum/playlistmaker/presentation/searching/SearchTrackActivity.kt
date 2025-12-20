@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
-import android.text.TextWatcher
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
@@ -17,11 +16,12 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.creater.Creator
-import com.practicum.playlistmaker.data.network.ResponseStatus
+import com.practicum.playlistmaker.domain.interactor.ResponseStatus
 import com.practicum.playlistmaker.domain.interactor.StatusException
 import com.practicum.playlistmaker.domain.entity.Track
 import com.practicum.playlistmaker.domain.interactor.TracksHistoryInteractor
@@ -85,9 +85,7 @@ class SearchTrackActivity : AppCompatActivity() {
                 }
             })
 
-        historyTrackList.clear()
-        historyTrackList.addAll(historyInteractor.getHistory())
-        historyTrackAdapter.notifyDataSetChanged()
+        updateHistory()
         if (historyTrackList.isNotEmpty()) {
             viewGroupHistoryHint.isVisible = true
         } else {
@@ -135,24 +133,21 @@ class SearchTrackActivity : AppCompatActivity() {
             viewGroupHistoryHint.isVisible = hasFocus && editText.text.isEmpty() && historyTrackList.isNotEmpty()
         }
 
-        val simpleTextWatcher = object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+        editText.addTextChangedListener(
+            onTextChanged = { p0: CharSequence?, p1: Int, p2: Int, p3: Int ->
                 clearText.isVisible = !p0.isNullOrEmpty()
                 currentText = p0.toString()
                 viewGroupHistoryHint.isVisible = editText.hasFocus() && p0?.isEmpty() == true && historyTrackList.isNotEmpty()
                 trackList.clear()
                 trackAdapter.notifyDataSetChanged()
-            }
+            },
 
-            override fun afterTextChanged(p0: Editable?) {
+            afterTextChanged = { p0: Editable? ->
                 if (!p0.isNullOrEmpty()) {
                     searchDebounce()
                 }
             }
-        }
-        editText.addTextChangedListener(simpleTextWatcher)
+        )
 
         editText.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
@@ -267,6 +262,12 @@ class SearchTrackActivity : AppCompatActivity() {
     private fun searchDebounce() {
         handler.removeCallbacks(searchRunnable)
         handler.postDelayed(searchRunnable, SEARCH_DEBOUNCE_DELAY)
+    }
+
+    private fun updateHistory() {
+        historyTrackList.clear()
+        historyTrackList.addAll(historyInteractor.getHistory())
+        historyTrackAdapter.notifyDataSetChanged()
     }
 
     companion object {

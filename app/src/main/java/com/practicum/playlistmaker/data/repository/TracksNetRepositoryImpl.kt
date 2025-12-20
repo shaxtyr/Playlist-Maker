@@ -4,7 +4,7 @@ import com.practicum.playlistmaker.data.NetworkClient
 import com.practicum.playlistmaker.data.dto.TrackRequest
 import com.practicum.playlistmaker.data.dto.TracksResponse
 import com.practicum.playlistmaker.data.mapper.TrackNetMapper
-import com.practicum.playlistmaker.data.network.ResponseStatus
+import com.practicum.playlistmaker.domain.interactor.ResponseStatus
 import com.practicum.playlistmaker.domain.interactor.StatusException
 import com.practicum.playlistmaker.domain.entity.Track
 import com.practicum.playlistmaker.domain.repository.TracksNetRepository

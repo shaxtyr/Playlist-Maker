@@ -19,6 +19,7 @@ class TracksLocalRepositoryImpl(context: Context) : TracksLocalRepository {
     private var changeCallback: (() -> Unit)? = null
 
     override fun setListener(listener: () -> Unit) {
+        changeCallback = listener
         preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
             if (key == NEW_TRACK_KEY) {
                 changeCallback?.invoke()
@@ -33,36 +34,12 @@ class TracksLocalRepositoryImpl(context: Context) : TracksLocalRepository {
         changeCallback = null
     }
 
-
     private val json = Gson()
 
     override fun clearHistory() {
         sharedPreferences.edit()
             .clear()
             .apply()
-    }
-
-    override fun addToHistory(track: Track) {
-
-        val currentHistoryTrackList = getHistory().toMutableList()
-
-        val trackLocalDto = TrackLocalMapper.toData(track)
-
-        val itemToRemove = currentHistoryTrackList.find { it.trackId == trackLocalDto.trackId}
-        if (itemToRemove != null) {
-            currentHistoryTrackList.remove(itemToRemove)
-        }
-
-        /*if (currentHistoryTrackList.any {it.trackId == trackLocalDto.trackId}) {
-            currentHistoryTrackList.remove(trackLocalDto)
-        }*/
-
-        if (currentHistoryTrackList.size >= 10) {
-            currentHistoryTrackList.removeAt(currentHistoryTrackList.size - 1)
-        }
-        currentHistoryTrackList.add(0, track)
-
-        saveHistory(currentHistoryTrackList)
     }
 
     override fun getHistory() : List<Track> {
@@ -81,12 +58,12 @@ class TracksLocalRepositoryImpl(context: Context) : TracksLocalRepository {
             .apply()
     }
 
-    override fun createJsonFromTrackList(historyTrackList: ArrayList<Track>) : String {
+    private fun createJsonFromTrackList(historyTrackList: ArrayList<Track>) : String {
         val historyTrackListDto = historyTrackList.map { TrackLocalMapper.toData(it) }
         return json.toJson(historyTrackListDto)
     }
 
-    override fun createTrackListFromJson(json: String) : List<Track> {
+    private fun createTrackListFromJson(json: String) : List<Track> {
 
         val arrayOfTrackDto: Array<TrackLocalDto> = Gson().fromJson(json, object : TypeToken<Array<TrackLocalDto>>() {}.type)
 
