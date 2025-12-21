@@ -1,19 +1,21 @@
-package com.practicum.playlistmaker
+package com.practicum.playlistmaker.presentation.audioplayer
 
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.Group
+import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
+import com.practicum.playlistmaker.R
+import com.practicum.playlistmaker.domain.entity.Track
+import kotlinx.coroutines.Runnable
 import java.text.SimpleDateFormat
 import java.util.Locale
-import androidx.constraintlayout.widget.Group
-import kotlinx.coroutines.Runnable
 
 class AudioPlayerActivity: AppCompatActivity() {
 
@@ -55,18 +57,16 @@ class AudioPlayerActivity: AppCompatActivity() {
 
         trackNameAudioPlayer.text = openTrack.trackName
         artistNameAudioPlayer.text = openTrack.artistName
-        timeValueAudioPlayer.text = SimpleDateFormat("mm:ss", Locale.getDefault()).format(
-            openTrack.trackTime
-        )
+        timeValueAudioPlayer.text = openTrack.trackTime
 
         if (openTrack.collectionName.isEmpty()) {
-            albumGroup.visibility = View.GONE
+            albumGroup.isVisible = false
         } else {
-            albumGroup.visibility = View.VISIBLE
+            albumGroup.isVisible = true
             albumValueAudioPlayer.text = openTrack.collectionName
         }
 
-        yearGroup.visibility = View.VISIBLE
+        yearGroup.isVisible = true
         yearValueAudioPlayer.text = openTrack.getYearFromReleaseDate()
 
         genreValueAudioPlayer.text = openTrack.primaryGenreName

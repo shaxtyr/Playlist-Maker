@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="?attr/colorSecondary"
-    tools:context=".SearchActivity"
+    tools:context=".presentation.searching.SearchTrackActivity"
     tools:theme="@style/Base.Theme.PlaylistMaker">
 
 
