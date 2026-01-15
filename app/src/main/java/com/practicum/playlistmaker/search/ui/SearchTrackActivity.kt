@@ -1,0 +1,221 @@
+package com.practicum.playlistmaker.search.ui
+
+import android.content.Intent
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.text.Editable
+import android.util.Log
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
+import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.practicum.playlistmaker.R
+import com.practicum.playlistmaker.databinding.ActivitySearchBinding
+import com.practicum.playlistmaker.search.domain.entity.Track
+import com.practicum.playlistmaker.player.ui.PlayerActivity
+
+class SearchTrackActivity : AppCompatActivity() {
+
+    private var currentText = ""
+    private lateinit var communicationProblemMessage: String
+    private lateinit var emptyListMessage: String
+    private lateinit var binding: ActivitySearchBinding
+    private val handler = Handler(Looper.getMainLooper())
+    private var isClickAllowed = true
+    private var viewModel: SearchTrackViewModel? = null
+
+    private val tracksAdapter = TracksAdapter {
+        if (clickDebounce()) {
+            val audioPlayerIntent = Intent(this, PlayerActivity::class.java)
+            audioPlayerIntent.putExtra(OPEN_TRACK_KEY, it)
+            startActivity(audioPlayerIntent)
+        }
+    }
+
+    private val tracksHistoryAdapter = TracksAdapter {
+        if (clickDebounce()) {
+            val audioPlayerIntent = Intent(this, PlayerActivity::class.java)
+            audioPlayerIntent.putExtra(OPEN_TRACK_KEY, it)
+            startActivity(audioPlayerIntent)
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivitySearchBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        viewModel = ViewModelProvider(this, SearchTrackViewModel.getFactory(0)).get(
+            SearchTrackViewModel::class.java)
+
+        communicationProblemMessage = getString(R.string.communication_problems)
+        emptyListMessage = getString(R.string.nothing_found)
+
+
+        viewModel?.observeTracksState()?.observe(this) {
+            render(it)
+        }
+
+        viewModel?.observeTracksHistoryList()?.observe(this) {
+            viewModel?.loadHistory()
+            binding.viewGroupHistoryHint.isVisible = it.isNotEmpty()
+            tracksHistoryAdapter.notifyDataSetChanged()
+        }
+
+        binding.recyclerViewSearch.layoutManager = LinearLayoutManager(this)
+        binding.recyclerViewSearch.adapter = tracksAdapter
+
+        binding.recyclerViewHistory.layoutManager = LinearLayoutManager(this)
+        binding.recyclerViewHistory.adapter = tracksHistoryAdapter
+
+        //viewModel?.loadHistory()
+        /*historyInteractor.setListener {
+            runOnUiThread {
+                historyTrackList.clear()
+                historyTrackList.addAll(historyInteractor.getHistory())
+                tracksHistoryAdapter.notifyDataSetChanged()
+            }
+        }*/
+
+        binding.backFromSettings.setOnClickListener {
+            finish()
+        }
+
+        binding.clearHistory.setOnClickListener {
+            viewModel?.clearHistory()
+            binding.viewGroupHistoryHint.isVisible = false
+            tracksHistoryAdapter.notifyDataSetChanged()
+        }
+
+        binding.buttonClear.setOnClickListener {
+            binding.inputEditTextSearch.setText("")
+            binding.inputEditTextSearch.clearFocus()
+            val inputMethodManager =
+                getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
+            inputMethodManager?.hideSoftInputFromWindow(binding.inputEditTextSearch.windowToken, 0)
+            viewModel?.clearTracksList()
+            tracksHistoryAdapter.notifyDataSetChanged()
+        }
+
+        /*binding.inputEditTextSearch.setOnFocusChangeListener { view, hasFocus ->
+            binding.viewGroupHistoryHint.isVisible = hasFocus && binding.inputEditTextSearch.text.isEmpty() && historyTrackList.isNotEmpty()
+        }*/
+
+        binding.inputEditTextSearch.addTextChangedListener(
+            onTextChanged = { p0: CharSequence?, p1: Int, p2: Int, p3: Int ->
+                binding.buttonClear.isVisible = !p0.isNullOrEmpty()
+                currentText = p0.toString()
+                //binding.viewGroupHistoryHint.isVisible = binding.inputEditTextSearch.hasFocus() && p0?.isEmpty() == true && historyTrackList.isNotEmpty()
+                //trackList.clear()
+                tracksAdapter.notifyDataSetChanged()
+            },
+
+            afterTextChanged = { p0: Editable? ->
+                if (!p0.isNullOrEmpty()) {
+                    viewModel?.searchDebounce(p0.toString(), communicationProblemMessage, emptyListMessage)
+                }
+            }
+        )
+
+        binding.inputEditTextSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                viewModel?.search(binding.inputEditTextSearch.text.toString(), communicationProblemMessage, emptyListMessage)
+                true
+            }
+            false
+        }
+
+        binding.placeholderButton.setOnClickListener {
+            viewModel?.search(binding.inputEditTextSearch.text.toString(), communicationProblemMessage, emptyListMessage)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(EDIT_KEY, currentText)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        currentText = savedInstanceState.getString(EDIT_KEY, EDIT_DEF)
+    }
+
+    private fun clickDebounce(): Boolean {
+        val current = isClickAllowed
+        if (isClickAllowed) {
+            isClickAllowed = false
+            handler.postDelayed({ isClickAllowed = true },CLICK_DEBOUNCE_DELAY)
+        }
+        return current
+    }
+
+    fun showLoading() {
+        binding.apply {
+            recyclerViewSearch.isVisible = false
+            placeholderImage.isVisible = false
+            placeholderButton.isVisible = false
+            placeholderMessage.isVisible = false
+            progressBar.isVisible = true
+        }
+    }
+
+    fun showEmpty(message: String) {
+        binding.apply {
+            recyclerViewSearch.isVisible = false
+            placeholderImage.isVisible = true
+            placeholderButton.isVisible = true
+            placeholderMessage.isVisible = true
+            progressBar.isVisible = false
+
+            placeholderMessage.text = message
+        }
+    }
+
+    fun showError(errorMessage: String) {
+        binding.apply {
+            recyclerViewSearch.isVisible = false
+            placeholderImage.isVisible = true
+            placeholderButton.isVisible = true
+            placeholderMessage.isVisible = true
+            progressBar.isVisible = false
+
+            placeholderMessage.text = errorMessage
+        }
+    }
+
+    fun showContent(tracks: List<Track>) {
+        binding.apply {
+            recyclerViewSearch.isVisible = true
+            placeholderImage.isVisible = false
+            placeholderButton.isVisible = false
+            placeholderMessage.isVisible = false
+            progressBar.isVisible = false
+        }
+
+        tracksAdapter.tracks.clear()
+        tracksAdapter.tracks.addAll(tracks)
+        tracksAdapter.notifyDataSetChanged()
+    }
+
+    fun render(state: TracksState) {
+
+        when (state) {
+            is TracksState.Loading -> showLoading()
+            is TracksState.Error -> showError(state.errorMessage)
+            is TracksState.Empty -> showEmpty(state.message)
+            is TracksState.Content -> showContent(state.tracks)
+        }
+    }
+
+    companion object {
+        const val OPEN_TRACK_KEY = "open_track"
+        const val EDIT_KEY = "EDIT"
+        const val EDIT_DEF = ""
+        const val CLICK_DEBOUNCE_DELAY = 1000L
+        const val SEARCH_DEBOUNCE_DELAY = 2000L
+    }
+}
