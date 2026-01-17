@@ -1,44 +1,27 @@
 package com.practicum.playlistmaker.search.ui
 
-import android.app.Application
 import android.os.Handler
 import android.os.Looper
-import android.content.Context
 import android.os.SystemClock
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.practicum.playlistmaker.creater.Creator
 import com.practicum.playlistmaker.search.domain.entity.Track
 import com.practicum.playlistmaker.search.domain.interactor.TracksInteractor
 import com.practicum.playlistmaker.search.domain.interactor.SearchHistoryInteractor
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 
-class SearchTrackViewModel(private val context: Context) : ViewModel() {
+class SearchTrackViewModel() : ViewModel() {
 
     companion object {
         const val SEARCH_DEBOUNCE_DELAY = 2000L
         private val SEARCH_REQUEST_TOKEN = Any()
-
-        fun getFactory(value: Int): ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val app = (this[APPLICATION_KEY] as Application)
-                SearchTrackViewModel(app)
-            }
-        }
     }
+
     private val tracksStateLiveData = MutableLiveData<TracksState>()
     fun observeTracksState(): LiveData<TracksState> = tracksStateLiveData
-
-    private val tracksHistoryListLiveData = MutableLiveData<List<Track>>()
-    fun observeTracksHistoryList(): LiveData<List<Track>> = tracksHistoryListLiveData
-
-    private val tracksInteractor = Creator.provideTracksInteractor(context)
-    private val historyInteractor = Creator.provideSearchHistoryInteractor(context)
+    private val tracksInteractor = Creator.provideTracksInteractor()
+    private val historyInteractor = Creator.provideSearchHistoryInteractor()
 
     private val handler = Handler(Looper.getMainLooper())
     private var latestSearchText: String? = null
@@ -106,16 +89,6 @@ class SearchTrackViewModel(private val context: Context) : ViewModel() {
                             }
 
                         }
-
-                        /*if (errorMessage != null) {
-                            viewGroupHistoryHint.isVisible = false
-                            showMessage(communicationProblemMessage, R.drawable.ic_no_connection_120)
-                        } else if (trackList.isEmpty()) {
-                            viewGroupHistoryHint.isVisible = false
-                            showMessage(emptyListMessage, R.drawable.ic_nothing_120)
-                        } else {
-                            showMessage("", 0)
-                        }*/
                     }
                 }
             })
@@ -124,7 +97,7 @@ class SearchTrackViewModel(private val context: Context) : ViewModel() {
     fun loadHistory() {
        historyInteractor.getHistory(object : SearchHistoryInteractor.HistoryConsumer {
            override fun consume(searchHistory: List<Track>?) {
-               tracksHistoryListLiveData.postValue(searchHistory ?: emptyList())
+               tracksStateLiveData.postValue(TracksState.ContentHistory(searchHistory ?: emptyList()))
            }
        })
     }
@@ -135,14 +108,14 @@ class SearchTrackViewModel(private val context: Context) : ViewModel() {
 
         historyInteractor.getHistory(object : SearchHistoryInteractor.HistoryConsumer {
             override fun consume(searchHistory: List<Track>?) {
-                tracksHistoryListLiveData.value = searchHistory ?: emptyList()
+                tracksStateLiveData.value = TracksState.ContentHistory(searchHistory ?: emptyList())
             }
         })
     }
 
     fun clearHistory() {
         historyInteractor.clearHistory()
-        tracksHistoryListLiveData.value = emptyList()
+        tracksStateLiveData.value = TracksState.ContentHistory(emptyList())
     }
 
     private fun renderTracksState(state: TracksState) {

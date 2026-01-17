@@ -10,9 +10,9 @@ import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.practicum.playlistmaker.R
+import androidx.activity.viewModels
 import com.practicum.playlistmaker.databinding.ActivitySearchBinding
 import com.practicum.playlistmaker.search.domain.entity.Track
 import com.practicum.playlistmaker.player.ui.PlayerActivity
@@ -24,8 +24,7 @@ class SearchTrackActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySearchBinding
     private val handler = Handler(Looper.getMainLooper())
     private var isClickAllowed = true
-    private var viewModel: SearchTrackViewModel? = null
-
+    private val viewModel: SearchTrackViewModel by viewModels()
     private val tracksAdapter = TracksAdapter {
         if (clickDebounce()) {
             val audioPlayerIntent = Intent(this, PlayerActivity::class.java)
@@ -48,19 +47,12 @@ class SearchTrackActivity : AppCompatActivity() {
         binding = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel = ViewModelProvider(this, SearchTrackViewModel.getFactory(0)).get(
-            SearchTrackViewModel::class.java)
-
         communicationProblemMessage = getString(R.string.communication_problems)
         emptyListMessage = getString(R.string.nothing_found)
 
 
-        viewModel?.observeTracksState()?.observe(this) {
+        viewModel.observeTracksState().observe(this) {
             render(it)
-        }
-
-        viewModel?.observeTracksHistoryList()?.observe(this) {
-            showHistoryContent(it)
         }
 
         binding.recyclerViewSearch.layoutManager = LinearLayoutManager(this)
@@ -69,14 +61,14 @@ class SearchTrackActivity : AppCompatActivity() {
         binding.recyclerViewHistory.layoutManager = LinearLayoutManager(this)
         binding.recyclerViewHistory.adapter = tracksHistoryAdapter
 
-        viewModel?.loadHistory()
+        viewModel.loadHistory()
 
         binding.backFromSettings.setOnClickListener {
             finish()
         }
 
         binding.clearHistory.setOnClickListener {
-            viewModel?.clearHistory()
+            viewModel.clearHistory()
             binding.viewGroupHistoryHint.isVisible = false
             tracksHistoryAdapter.notifyDataSetChanged()
         }
@@ -98,7 +90,6 @@ class SearchTrackActivity : AppCompatActivity() {
                 binding.viewGroupHistoryHint.isVisible = false
                 showContent(tracksAdapter.tracks)
             }
-
         }
 
         binding.inputEditTextSearch.addTextChangedListener(
@@ -110,21 +101,21 @@ class SearchTrackActivity : AppCompatActivity() {
 
             afterTextChanged = { p0: Editable? ->
                 if (!p0.isNullOrEmpty()) {
-                    viewModel?.searchDebounce(p0.toString(), communicationProblemMessage, emptyListMessage)
+                    viewModel.searchDebounce(p0.toString(), communicationProblemMessage, emptyListMessage)
                 }
             }
         )
 
         binding.inputEditTextSearch.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
-                viewModel?.search(binding.inputEditTextSearch.text.toString(), communicationProblemMessage, emptyListMessage)
+                viewModel.search(binding.inputEditTextSearch.text.toString(), communicationProblemMessage, emptyListMessage)
                 true
             }
             false
         }
 
         binding.placeholderButton.setOnClickListener {
-            viewModel?.search(binding.inputEditTextSearch.text.toString(), communicationProblemMessage, emptyListMessage)
+            viewModel.search(binding.inputEditTextSearch.text.toString(), communicationProblemMessage, emptyListMessage)
         }
     }
 
@@ -206,25 +197,24 @@ class SearchTrackActivity : AppCompatActivity() {
         tracksAdapter.notifyDataSetChanged()
     }
 
-    fun showHistoryContent(tracks: List<Track>) {
-        binding.viewGroupHistoryHint.isVisible = tracks.isNotEmpty() && !binding.inputEditTextSearch.hasFocus() && binding.inputEditTextSearch.text.isEmpty()
-
+    fun showHistoryContent(tracksHistory: List<Track>) {
+        binding.viewGroupHistoryHint.isVisible = tracksHistory.isNotEmpty() && !binding.inputEditTextSearch.hasFocus() && binding.inputEditTextSearch.text.isEmpty()
         tracksHistoryAdapter.tracks.clear()
-        tracksHistoryAdapter.tracks.addAll(tracks)
+        tracksHistoryAdapter.tracks.addAll(tracksHistory)
         tracksHistoryAdapter.notifyDataSetChanged()
     }
 
     fun addTrackToHistory(track: Track) {
-        viewModel?.addTrackToHistory(track)
+        viewModel.addTrackToHistory(track)
     }
 
     fun render(state: TracksState) {
-
         when (state) {
             is TracksState.Loading -> showLoading()
             is TracksState.Error -> showError(state.errorMessage)
             is TracksState.Empty -> showEmpty(state.message)
             is TracksState.Content -> showContent(state.tracks)
+            is TracksState.ContentHistory -> showHistoryContent(state.tracksHistory)
         }
     }
 
@@ -233,6 +223,5 @@ class SearchTrackActivity : AppCompatActivity() {
         const val EDIT_KEY = "EDIT"
         const val EDIT_DEF = ""
         const val CLICK_DEBOUNCE_DELAY = 1000L
-        const val SEARCH_DEBOUNCE_DELAY = 2000L
     }
 }

@@ -18,4 +18,8 @@ sealed interface TracksState {
         val message: String
     ) : TracksState
 
+    data class ContentHistory(
+        val tracksHistory: List<Track>
+    ) : TracksState
+
 }

@@ -7,12 +7,11 @@ import com.practicum.playlistmaker.search.data.StorageClient
 import java.lang.reflect.Type
 
 class PrefsStorageClient<T>(
-    private val context: Context,
-    private val type: Type
-) : StorageClient<T> {
+    private val type: Type,
+    private val prefs: SharedPreferences,
+    private val gson: Gson
 
-    private val prefs: SharedPreferences = context.getSharedPreferences(TRACK_HISTORY_PREFERENCES, Context.MODE_PRIVATE)
-    private val gson = Gson()
+) : StorageClient<T> {
 
     override fun storeData(data: T) {
         prefs.edit().putString(NEW_TRACK_KEY, gson.toJson(data, type)).apply()

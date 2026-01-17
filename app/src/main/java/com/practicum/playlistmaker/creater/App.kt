@@ -8,15 +8,10 @@ class App : Application() {
         super.onCreate()
         Creator.initApplication(this)
 
-        val settingRepository = Creator.getSettingsRepository()
-        val currentTheme = settingRepository.getThemeSettings()
+        val settingsInteractor = Creator.provideSettingsInteractor()
+        val currentTheme = settingsInteractor.getThemeSettings()
 
-        AppCompatDelegate.setDefaultNightMode(
-            if (currentTheme.isDarkTheme) {
-                AppCompatDelegate.MODE_NIGHT_YES
-            } else {
-                AppCompatDelegate.MODE_NIGHT_NO
-            }
-        )
+        settingsInteractor.updateThemeSetting(currentTheme)
+
     }
 }

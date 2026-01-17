@@ -14,31 +14,24 @@ import kotlinx.coroutines.Runnable
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class PlayerViewModel(private val track: Track) : ViewModel() {
+class PlayerViewModel(private val track: Track, private val mediaPlayer: MediaPlayer) : ViewModel() {
 
     companion object {
-        const val STATE_DEFAULT = 0
-        const val STATE_PREPARED = 1
-        const val STATE_PLAYING = 2
-        const val STATE_PAUSED = 3
         const val DELAY = 500L
 
-        fun getFactory(track: Track): ViewModelProvider.Factory = viewModelFactory {
+        fun getFactory(track: Track, mediaPlayer: MediaPlayer): ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                PlayerViewModel(track)
+                PlayerViewModel(track, mediaPlayer)
             }
         }
     }
 
-    private var mediaPlayer = MediaPlayer()
+    private var currentProgressTime: String = "00:00"
     private val handler = Handler(Looper.getMainLooper())
     private var updateTimerRunnable: Runnable? = null
 
-    private val stateLiveData = MutableLiveData<Int>(STATE_DEFAULT)
-    fun observeState(): LiveData<Int> = stateLiveData
-
-    private val progressLiveData = MutableLiveData<String>("00:00")
-    fun observeTimer(): LiveData<String> = progressLiveData
+    private val playerStateLiveData = MutableLiveData<PlayerState>(PlayerState(EnumStateMode.DEFAULT, currentProgressTime))
+    fun observePlayerState(): LiveData<PlayerState> = playerStateLiveData
 
     init {
         preparedPlayer()
@@ -48,24 +41,24 @@ class PlayerViewModel(private val track: Track) : ViewModel() {
         mediaPlayer.setDataSource(track.previewUrl)
         mediaPlayer.prepareAsync()
         mediaPlayer.setOnPreparedListener {
-            stateLiveData.postValue(STATE_PREPARED)
+            playerStateLiveData.postValue(PlayerState(EnumStateMode.PREPARED, currentProgressTime))
         }
         mediaPlayer.setOnCompletionListener {
-            stateLiveData.postValue(STATE_PREPARED)
+            currentProgressTime = SimpleDateFormat("mm:ss", Locale.getDefault()).format(0L)
+            playerStateLiveData.postValue(PlayerState(EnumStateMode.PREPARED, currentProgressTime))
             stopTimer()
-            progressLiveData.postValue(SimpleDateFormat("mm:ss", Locale.getDefault()).format(0L))
         }
     }
 
     private fun startPlayer() {
         mediaPlayer.start()
-        stateLiveData.postValue(STATE_PLAYING)
+        playerStateLiveData.postValue(PlayerState(EnumStateMode.PLAYING, currentProgressTime))
         startTimer()
     }
 
     fun pausePlayer() {
         mediaPlayer.pause()
-        stateLiveData.postValue(STATE_PAUSED)
+        playerStateLiveData.postValue(PlayerState(EnumStateMode.PAUSED, currentProgressTime))
         stopTimer()
     }
 
@@ -75,11 +68,11 @@ class PlayerViewModel(private val track: Track) : ViewModel() {
     }
 
     fun playbackControl() {
-        when(stateLiveData.value) {
-            STATE_PLAYING -> {
+        when(playerStateLiveData.value?.stateMode) {
+            EnumStateMode.PLAYING -> {
                 pausePlayer()
             }
-            STATE_PREPARED, STATE_PAUSED -> {
+            else -> {
                 startPlayer()
             }
         }
@@ -103,7 +96,8 @@ class PlayerViewModel(private val track: Track) : ViewModel() {
     private fun createUpdateTimerTask() : kotlinx.coroutines.Runnable {
         return object : Runnable {
             override fun run() {
-                progressLiveData.postValue(SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition))
+                currentProgressTime = SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition)
+                playerStateLiveData.postValue(PlayerState(EnumStateMode.PLAYING, currentProgressTime))
                 handler.postDelayed(this, DELAY)
             }
         }
