@@ -48,11 +48,9 @@ class PlayerViewModel(private val track: Track) : ViewModel() {
         mediaPlayer.setDataSource(track.previewUrl)
         mediaPlayer.prepareAsync()
         mediaPlayer.setOnPreparedListener {
-            //play.isEnabled = true
             stateLiveData.postValue(STATE_PREPARED)
         }
         mediaPlayer.setOnCompletionListener {
-            //play.setImageResource(R.drawable.ic_play_100)
             stateLiveData.postValue(STATE_PREPARED)
             stopTimer()
             progressLiveData.postValue(SimpleDateFormat("mm:ss", Locale.getDefault()).format(0L))
@@ -74,7 +72,6 @@ class PlayerViewModel(private val track: Track) : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         mediaPlayer.release()
-        //resetTimer()
     }
 
     fun playbackControl() {
@@ -88,7 +85,6 @@ class PlayerViewModel(private val track: Track) : ViewModel() {
         }
     }
 
-    /*  TIMER  */
     private fun startTimer() {
         if (updateTimerRunnable == null) {
             updateTimerRunnable = createUpdateTimerTask()

@@ -22,13 +22,9 @@ class TracksNetRepositoryImpl(private val networkClient: NetworkClient) : Tracks
                 Resource.Error(communicationProblemsMessage)
             }
             200 -> {
-                if (response is TracksResponse && Resource.Success(response).data?.results?.isNotEmpty() == true) {
-                    Resource.Success((response as TracksResponse).results.map {
+                    Resource.Success((response as TracksResponse).results.mapNotNull {
                         TrackNetMapper.toDomain(it)
                     })
-                } else {
-                    Resource.Error(emptyListMessage)
-                }
             }
             else -> {
                 Resource.Error(communicationProblemsMessage)

@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.content.Context
 import android.os.SystemClock
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -20,10 +21,6 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 class SearchTrackViewModel(private val context: Context) : ViewModel() {
 
     companion object {
-        const val OPEN_TRACK_KEY = "open_track"
-        const val EDIT_KEY = "EDIT"
-        const val EDIT_DEF = ""
-        const val CLICK_DEBOUNCE_DELAY = 1000L
         const val SEARCH_DEBOUNCE_DELAY = 2000L
         private val SEARCH_REQUEST_TOKEN = Any()
 
@@ -34,7 +31,6 @@ class SearchTrackViewModel(private val context: Context) : ViewModel() {
             }
         }
     }
-
     private val tracksStateLiveData = MutableLiveData<TracksState>()
     fun observeTracksState(): LiveData<TracksState> = tracksStateLiveData
 
@@ -48,8 +44,6 @@ class SearchTrackViewModel(private val context: Context) : ViewModel() {
     private var latestSearchText: String? = null
 
     fun searchDebounce(changedText: String, communicationProblemMessage: String, emptyListMessage: String) {
-        //handler.removeCallbacks(searchRunnable)
-        //handler.postDelayed(searchRunnable, SearchTrackActivity.Companion.SEARCH_DEBOUNCE_DELAY)
 
         if (latestSearchText == changedText) {
             return
@@ -68,12 +62,11 @@ class SearchTrackViewModel(private val context: Context) : ViewModel() {
         )
     }
 
-    fun clearTracksList() {
-        tracksStateLiveData.postValue(TracksState.Empty(""))
-    }
-
     fun search(newSearchText: String, communicationProblemMessage: String, emptyListMessage: String) {
-        //progressBar.isVisible = true
+
+        renderTracksState(
+            TracksState.Loading
+        )
 
         tracksInteractor.searchTracks(
             newSearchText, communicationProblemMessage, emptyListMessage,
@@ -81,7 +74,6 @@ class SearchTrackViewModel(private val context: Context) : ViewModel() {
 
                 override fun consume(foundTracks: List<Track>?, errorMessage: String?) {
                     handler.post {
-                        //progressBar.isVisible = false
 
                         val tracks = mutableListOf<Track>()
 
@@ -94,14 +86,14 @@ class SearchTrackViewModel(private val context: Context) : ViewModel() {
                             errorMessage != null -> {
                                 renderTracksState(
                                     TracksState.Error(
-                                        communicationProblemMessage
+                                        errorMessage =communicationProblemMessage
                                     )
                                 )
                             }
                             tracks.isEmpty() -> {
                                 renderTracksState(
                                     TracksState.Empty(
-                                        emptyListMessage
+                                        message = emptyListMessage
                                     )
                                 )
                             }
@@ -135,6 +127,17 @@ class SearchTrackViewModel(private val context: Context) : ViewModel() {
                tracksHistoryListLiveData.postValue(searchHistory ?: emptyList())
            }
        })
+    }
+
+    fun addTrackToHistory(track: Track) {
+
+        historyInteractor.saveToHistory(track)
+
+        historyInteractor.getHistory(object : SearchHistoryInteractor.HistoryConsumer {
+            override fun consume(searchHistory: List<Track>?) {
+                tracksHistoryListLiveData.value = searchHistory ?: emptyList()
+            }
+        })
     }
 
     fun clearHistory() {

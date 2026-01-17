@@ -3,21 +3,20 @@ package com.practicum.playlistmaker.main.ui
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import com.practicum.playlistmaker.R
+import com.practicum.playlistmaker.databinding.ActivityMainBinding
 import com.practicum.playlistmaker.media.ui.MediaActivity
 import com.practicum.playlistmaker.search.ui.SearchTrackActivity
 import com.practicum.playlistmaker.setting.ui.SettingsActivity
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        val searchButton = findViewById<Button>(R.id.search)
-        val mediaButton = findViewById<Button>(R.id.media)
-        val settingsButton = findViewById<Button>(R.id.settings)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         val mainClickListener: View.OnClickListener = object : View.OnClickListener {
             override fun onClick(v: View?) {
@@ -25,14 +24,14 @@ class MainActivity : AppCompatActivity() {
                 startActivity(searchIntent)
             }
         }
-        searchButton.setOnClickListener(mainClickListener)
+        binding.search.setOnClickListener(mainClickListener)
 
-        mediaButton.setOnClickListener {
+        binding.media.setOnClickListener {
             val mediaIntent = Intent(this@MainActivity, MediaActivity::class.java)
             startActivity(mediaIntent)
         }
 
-        settingsButton.setOnClickListener {
+        binding.settings.setOnClickListener {
             val settingsIntent = Intent(this@MainActivity, SettingsActivity::class.java)
             startActivity(settingsIntent)
         }

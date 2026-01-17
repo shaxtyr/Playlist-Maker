@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
-import android.util.Log
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
@@ -19,7 +18,6 @@ import com.practicum.playlistmaker.search.domain.entity.Track
 import com.practicum.playlistmaker.player.ui.PlayerActivity
 
 class SearchTrackActivity : AppCompatActivity() {
-
     private var currentText = ""
     private lateinit var communicationProblemMessage: String
     private lateinit var emptyListMessage: String
@@ -32,6 +30,7 @@ class SearchTrackActivity : AppCompatActivity() {
         if (clickDebounce()) {
             val audioPlayerIntent = Intent(this, PlayerActivity::class.java)
             audioPlayerIntent.putExtra(OPEN_TRACK_KEY, it)
+            addTrackToHistory(it)
             startActivity(audioPlayerIntent)
         }
     }
@@ -61,9 +60,7 @@ class SearchTrackActivity : AppCompatActivity() {
         }
 
         viewModel?.observeTracksHistoryList()?.observe(this) {
-            viewModel?.loadHistory()
-            binding.viewGroupHistoryHint.isVisible = it.isNotEmpty()
-            tracksHistoryAdapter.notifyDataSetChanged()
+            showHistoryContent(it)
         }
 
         binding.recyclerViewSearch.layoutManager = LinearLayoutManager(this)
@@ -72,14 +69,7 @@ class SearchTrackActivity : AppCompatActivity() {
         binding.recyclerViewHistory.layoutManager = LinearLayoutManager(this)
         binding.recyclerViewHistory.adapter = tracksHistoryAdapter
 
-        //viewModel?.loadHistory()
-        /*historyInteractor.setListener {
-            runOnUiThread {
-                historyTrackList.clear()
-                historyTrackList.addAll(historyInteractor.getHistory())
-                tracksHistoryAdapter.notifyDataSetChanged()
-            }
-        }*/
+        viewModel?.loadHistory()
 
         binding.backFromSettings.setOnClickListener {
             finish()
@@ -97,21 +87,25 @@ class SearchTrackActivity : AppCompatActivity() {
             val inputMethodManager =
                 getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
             inputMethodManager?.hideSoftInputFromWindow(binding.inputEditTextSearch.windowToken, 0)
-            viewModel?.clearTracksList()
             tracksHistoryAdapter.notifyDataSetChanged()
         }
 
-        /*binding.inputEditTextSearch.setOnFocusChangeListener { view, hasFocus ->
-            binding.viewGroupHistoryHint.isVisible = hasFocus && binding.inputEditTextSearch.text.isEmpty() && historyTrackList.isNotEmpty()
-        }*/
+        binding.inputEditTextSearch.setOnFocusChangeListener { view, hasFocus ->
+
+            if (hasFocus && binding.inputEditTextSearch.text.isEmpty()) {
+                binding.viewGroupHistoryHint.isVisible = tracksHistoryAdapter.tracks.isNotEmpty()
+            } else {
+                binding.viewGroupHistoryHint.isVisible = false
+                showContent(tracksAdapter.tracks)
+            }
+
+        }
 
         binding.inputEditTextSearch.addTextChangedListener(
             onTextChanged = { p0: CharSequence?, p1: Int, p2: Int, p3: Int ->
                 binding.buttonClear.isVisible = !p0.isNullOrEmpty()
                 currentText = p0.toString()
-                //binding.viewGroupHistoryHint.isVisible = binding.inputEditTextSearch.hasFocus() && p0?.isEmpty() == true && historyTrackList.isNotEmpty()
-                //trackList.clear()
-                tracksAdapter.notifyDataSetChanged()
+                binding.viewGroupHistoryHint.isVisible = binding.inputEditTextSearch.hasFocus() && p0?.isEmpty() == true && tracksHistoryAdapter.tracks.isNotEmpty()
             },
 
             afterTextChanged = { p0: Editable? ->
@@ -148,11 +142,12 @@ class SearchTrackActivity : AppCompatActivity() {
         val current = isClickAllowed
         if (isClickAllowed) {
             isClickAllowed = false
-            handler.postDelayed({ isClickAllowed = true },CLICK_DEBOUNCE_DELAY)
+            handler.postDelayed({ isClickAllowed = true },
+                SearchTrackActivity.Companion.CLICK_DEBOUNCE_DELAY
+            )
         }
         return current
     }
-
     fun showLoading() {
         binding.apply {
             recyclerViewSearch.isVisible = false
@@ -166,8 +161,13 @@ class SearchTrackActivity : AppCompatActivity() {
     fun showEmpty(message: String) {
         binding.apply {
             recyclerViewSearch.isVisible = false
-            placeholderImage.isVisible = true
-            placeholderButton.isVisible = true
+
+            placeholderImage.apply {
+                setImageResource(R.drawable.ic_nothing_120)
+                isVisible = true
+            }
+
+            placeholderButton.isVisible = false
             placeholderMessage.isVisible = true
             progressBar.isVisible = false
 
@@ -178,7 +178,12 @@ class SearchTrackActivity : AppCompatActivity() {
     fun showError(errorMessage: String) {
         binding.apply {
             recyclerViewSearch.isVisible = false
-            placeholderImage.isVisible = true
+
+            placeholderImage.apply {
+                setImageResource(R.drawable.ic_no_connection_120)
+                isVisible = true
+            }
+
             placeholderButton.isVisible = true
             placeholderMessage.isVisible = true
             progressBar.isVisible = false
@@ -199,6 +204,18 @@ class SearchTrackActivity : AppCompatActivity() {
         tracksAdapter.tracks.clear()
         tracksAdapter.tracks.addAll(tracks)
         tracksAdapter.notifyDataSetChanged()
+    }
+
+    fun showHistoryContent(tracks: List<Track>) {
+        binding.viewGroupHistoryHint.isVisible = tracks.isNotEmpty() && !binding.inputEditTextSearch.hasFocus() && binding.inputEditTextSearch.text.isEmpty()
+
+        tracksHistoryAdapter.tracks.clear()
+        tracksHistoryAdapter.tracks.addAll(tracks)
+        tracksHistoryAdapter.notifyDataSetChanged()
+    }
+
+    fun addTrackToHistory(track: Track) {
+        viewModel?.addTrackToHistory(track)
     }
 
     fun render(state: TracksState) {

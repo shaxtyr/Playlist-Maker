@@ -146,7 +146,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:paddingBottom="16dp"
-                android:visibility="invisible"
+                android:visibility="gone"
                 tools:src="@tools:sample/avatars"/>
 
             <TextView android:id="@+id/placeholderMessage"

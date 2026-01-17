@@ -42,26 +42,6 @@ object Creator {
         return TracksInteractorImpl(getTracksNetRepository(context))
     }
 
-    // for Track Shared Preferences
-    //private fun getTracksLocalRepository(): TracksLocalRepository {
-        //return TracksLocalRepositoryImpl(context = application)
-    //}
-
-    //fun provideTracksHistoryInteractor(): TracksHistoryInteractor {
-        //return TracksHistoryInteractorImpl(getTracksLocalRepository())
-    //}
-
-    // for Theme Shared Preferences
-    /*
-    fun getThemeLocalRepository(): ThemeLocalRepository {
-        return ThemeLocalRepositoryImpl(context = application)
-    }
-
-    fun provideThemeInteractor(): ThemeInteractor {
-        return ThemeInteractorImpl(getThemeLocalRepository())
-    }
-    */
-
     // for History
     private fun getSearchHistoryRepository(context: Context): SearchHistoryRepository {
         return SearchHistoryRepositoryImpl(

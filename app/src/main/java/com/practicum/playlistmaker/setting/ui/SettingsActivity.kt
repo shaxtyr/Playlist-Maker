@@ -1,24 +1,23 @@
 package com.practicum.playlistmaker.setting.ui
 
 import android.os.Bundle
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.material.switchmaterial.SwitchMaterial
-import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.creater.Creator
+import com.practicum.playlistmaker.databinding.ActivitySettingsBinding
 import com.practicum.playlistmaker.setting.domain.interactor.SettingsInteractor
 import com.practicum.playlistmaker.sharing.domain.interactor.SharingInteractor
 
 class SettingsActivity: AppCompatActivity() {
+    private lateinit var binding: ActivitySettingsBinding
     private lateinit var viewModel: SettingsViewModel
     private lateinit var settingsInteractor: SettingsInteractor
     private lateinit var sharingInteractor: SharingInteractor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         Creator.initApplication(application)
         sharingInteractor = Creator.provideSharingInteractor()
@@ -26,33 +25,27 @@ class SettingsActivity: AppCompatActivity() {
 
         viewModel = ViewModelProvider(this, SettingsViewModel.getFactory(sharingInteractor, settingsInteractor)).get(SettingsViewModel::class.java)
 
-        val backIcon = findViewById<ImageView>(R.id.back_from_settings)
-        val shareApp = findViewById<TextView>(R.id.share_app)
-        val writeToSupport = findViewById<TextView>(R.id.write_to_support)
-        val getUserAgreement = findViewById<TextView>(R.id.user_agreement)
-        val themeSwitcher = findViewById<SwitchMaterial>(R.id.theme_switcher)
-
         viewModel.observeThemeSettings().observe(this) {
-            themeSwitcher.isChecked = it.isDarkTheme
+            binding.themeSwitcher.isChecked = it.isDarkTheme
         }
 
-        themeSwitcher.setOnCheckedChangeListener { switcher, checked ->
+        binding.themeSwitcher.setOnCheckedChangeListener { switcher, checked ->
             viewModel.switchTheme(checked)
         }
 
-        backIcon.setOnClickListener {
+        binding.backFromSettings.setOnClickListener {
             finish()
         }
 
-        getUserAgreement.setOnClickListener {
+        binding.userAgreement.setOnClickListener {
             viewModel.showUserDoc()
         }
 
-        shareApp.setOnClickListener {
+        binding.shareApp.setOnClickListener {
             viewModel.shareApp()
         }
 
-        writeToSupport.setOnClickListener {
+        binding.writeToSupport.setOnClickListener {
             viewModel.writeToSupport()
         }
     }
