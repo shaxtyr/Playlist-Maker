@@ -12,7 +12,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.practicum.playlistmaker.R
-import androidx.activity.viewModels
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import com.practicum.playlistmaker.databinding.ActivitySearchBinding
 import com.practicum.playlistmaker.search.domain.entity.Track
 import com.practicum.playlistmaker.player.ui.PlayerActivity
@@ -22,9 +22,11 @@ class SearchTrackActivity : AppCompatActivity() {
     private lateinit var communicationProblemMessage: String
     private lateinit var emptyListMessage: String
     private lateinit var binding: ActivitySearchBinding
-    private val handler = Handler(Looper.getMainLooper())
     private var isClickAllowed = true
-    private val viewModel: SearchTrackViewModel by viewModels()
+    private val viewModel by viewModel<SearchTrackViewModel>()
+    private var handler: Handler? = null
+
+
     private val tracksAdapter = TracksAdapter {
         if (clickDebounce()) {
             val audioPlayerIntent = Intent(this, PlayerActivity::class.java)
@@ -130,12 +132,11 @@ class SearchTrackActivity : AppCompatActivity() {
     }
 
     private fun clickDebounce(): Boolean {
+        handler = Handler(Looper.getMainLooper())
         val current = isClickAllowed
         if (isClickAllowed) {
             isClickAllowed = false
-            handler.postDelayed({ isClickAllowed = true },
-                SearchTrackActivity.Companion.CLICK_DEBOUNCE_DELAY
-            )
+            handler?.postDelayed({ isClickAllowed = true }, CLICK_DEBOUNCE_DELAY)
         }
         return current
     }
