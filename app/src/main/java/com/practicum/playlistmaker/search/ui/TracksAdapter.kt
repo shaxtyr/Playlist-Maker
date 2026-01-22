@@ -20,10 +20,6 @@ class TracksAdapter(val clickListener: TrackClickListener) : RecyclerView.Adapte
         holder.bind(tracks[position])
         holder.itemView.setOnClickListener {
             clickListener.onTrackClick(tracks[position])
-            /*if (!isHistoryTrack) {
-                searchHistory.addTrack(tracks[position])
-            }
-            onClickDebounce(position)*/
         }
     }
 

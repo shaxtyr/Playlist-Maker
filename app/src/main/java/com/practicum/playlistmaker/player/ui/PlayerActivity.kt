@@ -3,19 +3,17 @@ package com.practicum.playlistmaker.player.ui
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.practicum.playlistmaker.R
-import com.practicum.playlistmaker.creater.Creator
 import com.practicum.playlistmaker.databinding.ActivityAudioPlayerBinding
 import com.practicum.playlistmaker.search.domain.entity.Track
+import org.koin.android.ext.android.getKoin
+import org.koin.core.parameter.parametersOf
 
 class PlayerActivity: AppCompatActivity() {
-
     private lateinit var binding: ActivityAudioPlayerBinding
     private lateinit var viewModel: PlayerViewModel
     private lateinit var openTrack: Track
-    private val mediaPlayer = Creator.getMediaPlayer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,9 +22,7 @@ class PlayerActivity: AppCompatActivity() {
 
         val intent = getIntent()
         openTrack = intent.getSerializableExtra(OPEN_TRACK_KEY) as Track
-
-        viewModel = ViewModelProvider(this, PlayerViewModel.getFactory(openTrack, mediaPlayer)).get(
-            PlayerViewModel::class.java)
+        viewModel = getKoin().get { parametersOf(openTrack) }
 
         viewModel.observePlayerState().observe(this) {
             when(it.stateMode) {

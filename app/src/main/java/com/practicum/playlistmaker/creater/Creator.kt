@@ -7,6 +7,7 @@ import android.media.MediaPlayer
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.practicum.playlistmaker.search.data.network.RetrofitNetworkClient
+import com.practicum.playlistmaker.search.data.network.iTunesApi
 import com.practicum.playlistmaker.search.data.repository.TracksNetRepositoryImpl
 import com.practicum.playlistmaker.search.domain.TracksInteractorImpl
 import com.practicum.playlistmaker.search.domain.entity.Track
@@ -28,6 +29,8 @@ import com.practicum.playlistmaker.sharing.SharingInteractorImpl
 import com.practicum.playlistmaker.sharing.data.repository.AndroidResourceProvider
 import com.practicum.playlistmaker.sharing.data.repository.ExternalNavigatorImpl
 import com.practicum.playlistmaker.sharing.domain.interactor.SharingInteractor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 object Creator {
     private lateinit var application: Application
@@ -35,11 +38,24 @@ object Creator {
     private lateinit var searchHistoryInteractor: SearchHistoryInteractor
     private lateinit var settingsInteractor: SettingsInteractor
     private lateinit var sharingInteractor: SharingInteractor
-
     private lateinit var prefs: SharedPreferences
     private lateinit var gson: Gson
+    private lateinit var iTunesBaseUrl: String
+    private lateinit var retrofit: Retrofit
+    private lateinit var iTunesService: iTunesApi
+
+
 
     fun initApplication(application: Application) {
+
+        iTunesBaseUrl = "https://itunes.apple.com"
+
+        retrofit = Retrofit.Builder()
+            .baseUrl(iTunesBaseUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        iTunesService = retrofit.create(iTunesApi::class.java)
 
         prefs = application.getSharedPreferences(TRACK_HISTORY_PREFERENCES, Context.MODE_PRIVATE)
         gson = Gson()
@@ -58,7 +74,7 @@ object Creator {
 
     // for Retrofit
     private fun getTracksNetRepository(): TracksNetRepository {
-        return TracksNetRepositoryImpl(RetrofitNetworkClient(application))
+        return TracksNetRepositoryImpl(RetrofitNetworkClient(application, iTunesService))
     }
 
     fun provideTracksInteractor(): TracksInteractor {

@@ -1,17 +1,15 @@
 package com.practicum.playlistmaker.search.ui
 
 import android.os.Handler
-import android.os.Looper
 import android.os.SystemClock
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.practicum.playlistmaker.creater.Creator
 import com.practicum.playlistmaker.search.domain.entity.Track
 import com.practicum.playlistmaker.search.domain.interactor.TracksInteractor
 import com.practicum.playlistmaker.search.domain.interactor.SearchHistoryInteractor
 
-class SearchTrackViewModel() : ViewModel() {
+class SearchTrackViewModel(private val tracksInteractor: TracksInteractor, private val historyInteractor: SearchHistoryInteractor, private val handler: Handler) : ViewModel() {
 
     companion object {
         const val SEARCH_DEBOUNCE_DELAY = 2000L
@@ -20,10 +18,6 @@ class SearchTrackViewModel() : ViewModel() {
 
     private val tracksStateLiveData = MutableLiveData<TracksState>()
     fun observeTracksState(): LiveData<TracksState> = tracksStateLiveData
-    private val tracksInteractor = Creator.provideTracksInteractor()
-    private val historyInteractor = Creator.provideSearchHistoryInteractor()
-
-    private val handler = Handler(Looper.getMainLooper())
     private var latestSearchText: String? = null
 
     fun searchDebounce(changedText: String, communicationProblemMessage: String, emptyListMessage: String) {
