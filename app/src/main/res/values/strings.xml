@@ -29,4 +29,10 @@
     <string name="country">Страна</string>
     <string name="progress">0:30</string>
 
+    <string name="my_favorite_tracks">Избранные треки</string>
+    <string name="my_playlists">Плейлисты</string>
+    <string name="empty_my_favorite_tracks">Ваша медиатека пуста</string>
+    <string name="empty_my_playlists">Вы не создали ни одного плейлиста</string>
+    <string name="new_playlist">Новый плейлист</string>
+
 </resources>

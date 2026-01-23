@@ -114,4 +114,15 @@
         <item name="android:textFontWeight">500</item>
     </style>
 
+    <style name="TabLayoutStyleMediaScreen">
+        <item name="android:textAllCaps">false</item>
+        <item name="textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/ys_display_medium</item>
+        <item name="tabMode">fixed</item>
+        <item name="tabGravity">fill</item>
+        <item name="tabIndicatorHeight">2dp</item>
+        <item name="android:textFontWeight">500</item>
+    </style>
+
 </resources>
