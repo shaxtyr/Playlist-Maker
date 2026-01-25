@@ -10,20 +10,6 @@
         <item name="android:textFontWeight">500</item>
     </style>
 
-    <!-- activity_main.xml -->
-
-    <style name="ButtonStyleMainScreen" parent="Widget.MaterialComponents.Button.UnelevatedButton">
-        <item name="android:backgroundTint">@color/white</item>
-        <item name="android:textAllCaps">false</item>
-        <item name="android:textColor">@color/black</item>
-        <item name="android:textSize">@dimen/medium_font_22</item>
-        <item name="android:fontFamily">@font/ys_display_medium</item>
-        <item name="android:textFontWeight">500</item>
-        <item name="iconGravity">textStart</item>
-        <item name="iconTint">@color/black</item>
-        <item name="cornerRadius">@dimen/radius_16</item>
-    </style>
-
     <!-- activity_setting.xml -->
 
     <style name="BackStyleSettingsScreen">
@@ -124,5 +110,7 @@
         <item name="tabIndicatorHeight">2dp</item>
         <item name="android:textFontWeight">500</item>
     </style>
+
+
 
 </resources>

@@ -1,30 +1,45 @@
 package com.practicum.playlistmaker.player.ui
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.practicum.playlistmaker.R
-import com.practicum.playlistmaker.databinding.ActivityAudioPlayerBinding
+import com.practicum.playlistmaker.databinding.FragmentPlayerBinding
 import com.practicum.playlistmaker.search.domain.entity.Track
 import org.koin.android.ext.android.getKoin
 import org.koin.core.parameter.parametersOf
 
-class PlayerActivity: AppCompatActivity() {
-    private lateinit var binding: ActivityAudioPlayerBinding
+class PlayerFragment : Fragment(){
+
+    private var _binding: FragmentPlayerBinding? = null
+    private val binding get() = _binding!!
+
     private lateinit var viewModel: PlayerViewModel
     private lateinit var openTrack: Track
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityAudioPlayerBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        _binding = FragmentPlayerBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        val intent = getIntent()
-        openTrack = intent.getSerializableExtra(OPEN_TRACK_KEY) as Track
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        openTrack = requireArguments().get(OPEN_TRACK_KEY) as Track
+
         viewModel = getKoin().get { parametersOf(openTrack) }
 
-        viewModel.observePlayerState().observe(this) {
+        viewModel.observePlayerState().observe(viewLifecycleOwner) {
             when(it.stateMode) {
                 EnumStateMode.PLAYING -> binding.playButton.setImageResource(R.drawable.ic_pause_100)
                 else -> binding.playButton.setImageResource(R.drawable.ic_play_100)
@@ -38,12 +53,18 @@ class PlayerActivity: AppCompatActivity() {
         }
 
         binding.backFromAudioPlayer.setOnClickListener {
-            finish()
+            findNavController().navigateUp()
         }
+
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     private fun setOtherInfoFromTrack() {
-        Glide.with(applicationContext)
+        Glide.with(requireContext())
             .load(openTrack.getCoverArtwork())
             .placeholder(R.drawable.placeholder_312)
             .into(binding.coverFromCardview)
@@ -73,5 +94,9 @@ class PlayerActivity: AppCompatActivity() {
 
     companion object {
         private const val OPEN_TRACK_KEY = "open_track"
+
+        fun createArgs(track: Track): Bundle =
+            bundleOf(OPEN_TRACK_KEY to track)
     }
+
 }

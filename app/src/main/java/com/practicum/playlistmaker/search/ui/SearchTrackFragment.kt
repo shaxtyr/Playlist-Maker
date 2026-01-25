@@ -1,73 +1,87 @@
 package com.practicum.playlistmaker.search.ui
 
-import android.content.Intent
+import android.content.Context.INPUT_METHOD_SERVICE
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.practicum.playlistmaker.R
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import com.practicum.playlistmaker.databinding.ActivitySearchBinding
+import com.practicum.playlistmaker.databinding.FragmentSearchBinding
+import com.practicum.playlistmaker.player.ui.PlayerFragment
 import com.practicum.playlistmaker.search.domain.entity.Track
-import com.practicum.playlistmaker.player.ui.PlayerActivity
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import kotlin.getValue
 
-class SearchTrackActivity : AppCompatActivity() {
+class SearchTrackFragment : Fragment() {
+
+    private var _binding: FragmentSearchBinding? = null
+    private val binding get() = _binding!!
+
     private var currentText = ""
     private lateinit var communicationProblemMessage: String
     private lateinit var emptyListMessage: String
-    private lateinit var binding: ActivitySearchBinding
     private var isClickAllowed = true
     private val viewModel by viewModel<SearchTrackViewModel>()
     private var handler: Handler? = null
 
 
-    private val tracksAdapter = TracksAdapter {
+    private val tracksAdapter = TracksAdapter { track ->
         if (clickDebounce()) {
-            val audioPlayerIntent = Intent(this, PlayerActivity::class.java)
-            audioPlayerIntent.putExtra(OPEN_TRACK_KEY, it)
-            addTrackToHistory(it)
-            startActivity(audioPlayerIntent)
+
+            addTrackToHistory(track)
+            findNavController().navigate(R.id.action_searchTrackFragment_to_playerFragment,
+                PlayerFragment.createArgs(track))
+
         }
     }
 
-    private val tracksHistoryAdapter = TracksAdapter {
+    private val tracksHistoryAdapter = TracksAdapter { track ->
         if (clickDebounce()) {
-            val audioPlayerIntent = Intent(this, PlayerActivity::class.java)
-            audioPlayerIntent.putExtra(OPEN_TRACK_KEY, it)
-            startActivity(audioPlayerIntent)
+
+            findNavController().navigate(R.id.action_searchTrackFragment_to_playerFragment,
+                PlayerFragment.createArgs(track))
+
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivitySearchBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        _binding = FragmentSearchBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
 
         communicationProblemMessage = getString(R.string.communication_problems)
         emptyListMessage = getString(R.string.nothing_found)
 
 
-        viewModel.observeTracksState().observe(this) {
+        viewModel.observeTracksState().observe(viewLifecycleOwner) {
             render(it)
         }
 
-        binding.recyclerViewSearch.layoutManager = LinearLayoutManager(this)
+        binding.recyclerViewSearch.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerViewSearch.adapter = tracksAdapter
 
-        binding.recyclerViewHistory.layoutManager = LinearLayoutManager(this)
+        binding.recyclerViewHistory.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerViewHistory.adapter = tracksHistoryAdapter
 
         viewModel.loadHistory()
-
-        binding.backFromSettings.setOnClickListener {
-            finish()
-        }
 
         binding.clearHistory.setOnClickListener {
             viewModel.clearHistory()
@@ -79,7 +93,7 @@ class SearchTrackActivity : AppCompatActivity() {
             binding.inputEditTextSearch.setText("")
             binding.inputEditTextSearch.clearFocus()
             val inputMethodManager =
-                getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
+                requireContext().getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
             inputMethodManager?.hideSoftInputFromWindow(binding.inputEditTextSearch.windowToken, 0)
             tracksHistoryAdapter.notifyDataSetChanged()
         }
@@ -119,16 +133,12 @@ class SearchTrackActivity : AppCompatActivity() {
         binding.placeholderButton.setOnClickListener {
             viewModel.search(binding.inputEditTextSearch.text.toString(), communicationProblemMessage, emptyListMessage)
         }
+
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putString(EDIT_KEY, currentText)
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        currentText = savedInstanceState.getString(EDIT_KEY, EDIT_DEF)
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     private fun clickDebounce(): Boolean {
@@ -220,9 +230,6 @@ class SearchTrackActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val OPEN_TRACK_KEY = "open_track"
-        const val EDIT_KEY = "EDIT"
-        const val EDIT_DEF = ""
         const val CLICK_DEBOUNCE_DELAY = 1000L
     }
 }

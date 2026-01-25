@@ -1,6 +1,7 @@
 package com.practicum.playlistmaker.creater
 
 import android.app.Application
+import androidx.core.app.ActivityCompat.recreate
 import com.practicum.playlistmaker.di.dataModule
 import com.practicum.playlistmaker.di.interactorModule
 import com.practicum.playlistmaker.di.repositoryModule
