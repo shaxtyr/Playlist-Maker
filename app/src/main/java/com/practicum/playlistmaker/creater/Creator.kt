@@ -32,6 +32,7 @@ import com.practicum.playlistmaker.sharing.domain.interactor.SharingInteractor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+//не используется
 object Creator {
     private lateinit var application: Application
     private lateinit var tracksInteractor: TracksInteractor
@@ -43,8 +44,6 @@ object Creator {
     private lateinit var iTunesBaseUrl: String
     private lateinit var retrofit: Retrofit
     private lateinit var iTunesService: iTunesApi
-
-
 
     fun initApplication(application: Application) {
 
