@@ -1,6 +1,5 @@
 package com.practicum.playlistmaker.search.ui
 
-import android.os.Handler
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -12,7 +11,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class SearchTrackViewModel(private val tracksInteractor: TracksInteractor, private val historyInteractor: SearchHistoryInteractor, private val handler: Handler) : ViewModel() {
+class SearchTrackViewModel(private val tracksInteractor: TracksInteractor, private val historyInteractor: SearchHistoryInteractor) : ViewModel() {
 
     companion object {
         const val SEARCH_DEBOUNCE_DELAY = 2000L
@@ -43,47 +42,47 @@ class SearchTrackViewModel(private val tracksInteractor: TracksInteractor, priva
             TracksState.Loading
         )
 
-        tracksInteractor.searchTracks(
-            newSearchText, communicationProblemMessage, emptyListMessage,
-            object : TracksInteractor.TracksConsumer {
-
-                override fun consume(foundTracks: List<Track>?, errorMessage: String?) {
-                    handler.post {
-
-                        val tracks = mutableListOf<Track>()
-
-                        if (foundTracks != null) {
-                            tracks.clear()
-                            tracks.addAll(foundTracks)
-                        }
-
-                        when {
-                            errorMessage != null -> {
-                                renderTracksState(
-                                    TracksState.Error(
-                                        errorMessage =communicationProblemMessage
-                                    )
-                                )
-                            }
-                            tracks.isEmpty() -> {
-                                renderTracksState(
-                                    TracksState.Empty(
-                                        message = emptyListMessage
-                                    )
-                                )
-                            }
-                            else -> {
-                                renderTracksState(
-                                    TracksState.Content(
-                                        tracks
-                                    )
-                                )
-                            }
-
-                        }
-                    }
+        viewModelScope.launch {
+            tracksInteractor
+                .searchTracks(newSearchText, communicationProblemMessage, emptyListMessage)
+                .collect { pair ->
+                    processResult(pair.first, pair.second, communicationProblemMessage, emptyListMessage)
                 }
-            })
+        }
+    }
+
+    private fun processResult(foundTracks: List<Track>?, error: String?, communicationProblemMessage: String, emptyListMessage: String) {
+        val tracks = mutableListOf<Track>()
+
+        if (foundTracks != null) {
+            tracks.clear()
+            tracks.addAll(foundTracks)
+        }
+
+        when {
+            error != null -> {
+                renderTracksState(
+                    TracksState.Error(
+                        errorMessage = communicationProblemMessage
+                    )
+                )
+            }
+            tracks.isEmpty() -> {
+                renderTracksState(
+                    TracksState.Empty(
+                        message = emptyListMessage
+                    )
+                )
+            }
+            else -> {
+                renderTracksState(
+                    TracksState.Content(
+                        tracks
+                    )
+                )
+            }
+
+        }
     }
 
     fun loadHistory() {
@@ -114,8 +113,4 @@ class SearchTrackViewModel(private val tracksInteractor: TracksInteractor, priva
         tracksStateLiveData.postValue(state)
     }
 
-    /*override fun onCleared() {
-        super.onCleared()
-        handler.removeCallbacksAndMessages(SEARCH_REQUEST_TOKEN)
-    }*/
 }
