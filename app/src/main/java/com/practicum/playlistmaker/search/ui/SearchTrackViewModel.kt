@@ -1,24 +1,27 @@
 package com.practicum.playlistmaker.search.ui
 
 import android.os.Handler
-import android.os.SystemClock
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.practicum.playlistmaker.search.domain.entity.Track
 import com.practicum.playlistmaker.search.domain.interactor.TracksInteractor
 import com.practicum.playlistmaker.search.domain.interactor.SearchHistoryInteractor
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class SearchTrackViewModel(private val tracksInteractor: TracksInteractor, private val historyInteractor: SearchHistoryInteractor, private val handler: Handler) : ViewModel() {
 
     companion object {
         const val SEARCH_DEBOUNCE_DELAY = 2000L
-        private val SEARCH_REQUEST_TOKEN = Any()
     }
 
     private val tracksStateLiveData = MutableLiveData<TracksState>()
     fun observeTracksState(): LiveData<TracksState> = tracksStateLiveData
     private var latestSearchText: String? = null
+    private var searchJob: Job? = null
 
     fun searchDebounce(changedText: String, communicationProblemMessage: String, emptyListMessage: String) {
 
@@ -27,16 +30,11 @@ class SearchTrackViewModel(private val tracksInteractor: TracksInteractor, priva
         }
 
         this.latestSearchText = changedText
-        handler.removeCallbacksAndMessages(SEARCH_REQUEST_TOKEN)
-
-        val searchRunnable = Runnable { search(changedText, communicationProblemMessage, emptyListMessage) }
-
-        val postTime = SystemClock.uptimeMillis() + SEARCH_DEBOUNCE_DELAY
-        handler.postAtTime(
-            searchRunnable,
-            SEARCH_REQUEST_TOKEN,
-            postTime
-        )
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(SEARCH_DEBOUNCE_DELAY)
+            search(changedText, communicationProblemMessage, emptyListMessage)
+        }
     }
 
     fun search(newSearchText: String, communicationProblemMessage: String, emptyListMessage: String) {
@@ -116,8 +114,8 @@ class SearchTrackViewModel(private val tracksInteractor: TracksInteractor, priva
         tracksStateLiveData.postValue(state)
     }
 
-    override fun onCleared() {
+    /*override fun onCleared() {
         super.onCleared()
         handler.removeCallbacksAndMessages(SEARCH_REQUEST_TOKEN)
-    }
+    }*/
 }
