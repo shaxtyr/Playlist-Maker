@@ -1,23 +1,21 @@
 package com.practicum.playlistmaker.player.ui
 
 import android.media.MediaPlayer
-import android.os.Handler
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.practicum.playlistmaker.search.domain.entity.Track
-import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class PlayerViewModel(private val track: Track, private val mediaPlayer: MediaPlayer, private val handler: Handler) : ViewModel() {
+class PlayerViewModel(private val track: Track, private val mediaPlayer: MediaPlayer) : ViewModel() {
 
-    companion object {
-        const val DELAY = 500L
-    }
-
-    private var updateTimerRunnable: Runnable? = null
-    private val playerStateLiveData = MutableLiveData<PlayerState>(PlayerState(EnumStateMode.DEFAULT, SimpleDateFormat("mm:ss", Locale.getDefault()).format(0L)))
+    private var timerJob: Job? = null
+    private val playerStateLiveData = MutableLiveData<PlayerState>(PlayerState(EnumStateMode.DEFAULT, getCurrentPlayerProgress()))
     fun observePlayerState(): LiveData<PlayerState> = playerStateLiveData
 
     init {
@@ -29,24 +27,24 @@ class PlayerViewModel(private val track: Track, private val mediaPlayer: MediaPl
         mediaPlayer.setDataSource(track.previewUrl)
         mediaPlayer.prepareAsync()
         mediaPlayer.setOnPreparedListener {
-            playerStateLiveData.postValue(PlayerState(EnumStateMode.PREPARED, SimpleDateFormat("mm:ss", Locale.getDefault()).format(0L)))
+            playerStateLiveData.postValue(PlayerState(EnumStateMode.PREPARED, getCurrentPlayerProgress()))
         }
         mediaPlayer.setOnCompletionListener {
-            playerStateLiveData.postValue(PlayerState(EnumStateMode.PREPARED, SimpleDateFormat("mm:ss", Locale.getDefault()).format(0L)))
-            stopTimer()
+            timerJob?.cancel()
+            playerStateLiveData.postValue(PlayerState(EnumStateMode.PREPARED, "00:00"))
         }
     }
 
     private fun startPlayer() {
         mediaPlayer.start()
-        playerStateLiveData.postValue(PlayerState(EnumStateMode.PLAYING, SimpleDateFormat("mm:ss", Locale.getDefault()).format(0L)))
+        playerStateLiveData.postValue(PlayerState(EnumStateMode.PLAYING, getCurrentPlayerProgress()))
         startTimer()
     }
 
     fun pausePlayer() {
         mediaPlayer.pause()
-        playerStateLiveData.postValue(PlayerState(EnumStateMode.PAUSED, SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition)))
-        stopTimer()
+        timerJob?.cancel()
+        playerStateLiveData.postValue(PlayerState(EnumStateMode.PAUSED, getCurrentPlayerProgress()))
     }
 
     override fun onCleared() {
@@ -66,27 +64,16 @@ class PlayerViewModel(private val track: Track, private val mediaPlayer: MediaPl
     }
 
     private fun startTimer() {
-        if (updateTimerRunnable == null) {
-            updateTimerRunnable = createUpdateTimerTask()
-        }
-        handler.post(
-            updateTimerRunnable!!
-        )
-    }
-
-    private fun stopTimer() {
-        updateTimerRunnable?.let {
-            handler.removeCallbacks(it)
-        }
-    }
-
-    private fun createUpdateTimerTask() : kotlinx.coroutines.Runnable {
-        return object : Runnable {
-            override fun run() {
-                playerStateLiveData.postValue(PlayerState(EnumStateMode.PLAYING, SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition)))
-                handler.postDelayed(this, DELAY)
+        timerJob = viewModelScope.launch {
+            while (mediaPlayer.isPlaying) {
+                delay(300L)
+                playerStateLiveData.postValue(PlayerState(EnumStateMode.PLAYING, getCurrentPlayerProgress()))
             }
         }
+    }
+
+    private fun getCurrentPlayerProgress(): String {
+        return SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition) ?: "00:00"
     }
 
 }
