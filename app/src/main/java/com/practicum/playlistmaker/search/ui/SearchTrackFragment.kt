@@ -2,8 +2,6 @@ package com.practicum.playlistmaker.search.ui
 
 import android.content.Context.INPUT_METHOD_SERVICE
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.Editable
 import android.view.LayoutInflater
 import android.view.View
@@ -13,12 +11,15 @@ import android.view.inputmethod.InputMethodManager
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.databinding.FragmentSearchBinding
 import com.practicum.playlistmaker.player.ui.PlayerFragment
 import com.practicum.playlistmaker.search.domain.entity.Track
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import kotlin.getValue
 
@@ -26,14 +27,11 @@ class SearchTrackFragment : Fragment() {
 
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
-
     private var currentText = ""
     private lateinit var communicationProblemMessage: String
     private lateinit var emptyListMessage: String
     private var isClickAllowed = true
     private val viewModel by viewModel<SearchTrackViewModel>()
-    private var handler: Handler? = null
-
 
     private val tracksAdapter = TracksAdapter { track ->
         if (clickDebounce()) {
@@ -142,11 +140,13 @@ class SearchTrackFragment : Fragment() {
     }
 
     private fun clickDebounce(): Boolean {
-        handler = Handler(Looper.getMainLooper())
         val current = isClickAllowed
         if (isClickAllowed) {
             isClickAllowed = false
-            handler?.postDelayed({ isClickAllowed = true }, CLICK_DEBOUNCE_DELAY)
+            viewLifecycleOwner.lifecycleScope.launch {
+                delay(CLICK_DEBOUNCE_DELAY)
+                isClickAllowed = true
+            }
         }
         return current
     }
