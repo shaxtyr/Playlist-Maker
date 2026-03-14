@@ -40,16 +40,29 @@ class PlayerFragment : Fragment(){
         viewModel = getKoin().get { parametersOf(openTrack) }
 
         viewModel.observePlayerState().observe(viewLifecycleOwner) {
+
+            if (it.isFavorite) {
+                binding.likeButton.setImageResource(R.drawable.ic_like_with_heart_51)
+            } else {
+                binding.likeButton.setImageResource(R.drawable.ic_like_51)
+            }
+
             when(it.stateMode) {
                 EnumStateMode.PLAYING -> binding.playButton.setImageResource(R.drawable.ic_pause_100)
                 else -> binding.playButton.setImageResource(R.drawable.ic_play_100)
             }
+
             binding.progressBarAudioPlayer.text = it.progressTime
+
         }
         setOtherInfoFromTrack()
 
         binding.playButton.setOnClickListener {
             viewModel.playbackControl()
+        }
+
+        binding.likeButton.setOnClickListener {
+            viewModel.onFavoriteClicked()
         }
 
         binding.backFromAudioPlayer.setOnClickListener {

@@ -1,5 +1,8 @@
 package com.practicum.playlistmaker.di
 
+import com.practicum.playlistmaker.media.data.mapper.TrackDbConvertor
+import com.practicum.playlistmaker.media.data.repository.FavoriteTracksRepositoryImpl
+import com.practicum.playlistmaker.media.domain.repository.FavoriteTracksRepository
 import com.practicum.playlistmaker.search.data.repository.SearchHistoryRepositoryImpl
 import com.practicum.playlistmaker.search.data.repository.TracksNetRepositoryImpl
 import com.practicum.playlistmaker.search.domain.repository.SearchHistoryRepository
@@ -12,15 +15,22 @@ import org.koin.dsl.module
 val repositoryModule = module {
 
     single<TracksNetRepository> {
-        TracksNetRepositoryImpl(get())
+        TracksNetRepositoryImpl(get(), get())
     }
 
     single<SearchHistoryRepository> {
-        SearchHistoryRepositoryImpl(get())
+        SearchHistoryRepositoryImpl(get(), get())
     }
 
     single<SettingsRepository> {
         SettingsRepositoryImpl(androidContext())
     }
+
+    factory { TrackDbConvertor() }
+
+    single<FavoriteTracksRepository> {
+        FavoriteTracksRepositoryImpl(get(), get())
+    }
+
 
 }

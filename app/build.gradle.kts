@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
-
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -65,5 +65,16 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
 
     implementation(libs.kotlinx.coroutines.android)
+
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
+
+    /*val room_version = "2.8.4"
+    implementation("androidx.room:room-runtime:${room_version}")
+// Kotlin Symbol Processing (KSP)
+    ksp("androidx.room:room-compiler:$room_version")
+// Kotlin Extensions для корутин
+    implementation("androidx.room:room-ktx:${room_version}")*/
 
 }

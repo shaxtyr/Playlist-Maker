@@ -8,22 +8,35 @@
     android:orientation="vertical"
     tools:layout="@layout/fragment_my_favorite_tracks">
 
-    <ImageView
-        android:id="@+id/placeholderImage"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewFavoriteTracks"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"/>
+
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="106dp"
-        android:layout_marginBottom="16dp"
-        android:src="@drawable/ic_nothing_120"
-        tools:src="@tools:sample/avatars"/>
+        android:layout_marginTop="102dp"
+        android:layout_gravity="center_horizontal"
+        android:orientation="vertical" >
 
-    <TextView android:id="@+id/placeholderMessage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:textAlignment="center"
-        android:text="@string/empty_my_favorite_tracks"
-        style="@style/PlaceholderMessageStyleSearchScreen"/>
+        <ImageView
+            android:id="@+id/placeholderImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="106dp"
+            android:layout_marginBottom="16dp"
+            android:src="@drawable/ic_nothing_120"
+            tools:src="@tools:sample/avatars"/>
 
+        <TextView android:id="@+id/placeholderMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textAlignment="center"
+            style="@style/PlaceholderMessageStyleSearchScreen"/>
+
+    </LinearLayout>
 </LinearLayout>

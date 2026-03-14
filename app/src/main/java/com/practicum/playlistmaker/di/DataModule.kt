@@ -4,8 +4,10 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
+import androidx.room.Room
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.practicum.playlistmaker.media.data.db.TrackDatabase
 import com.practicum.playlistmaker.search.data.NetworkClient
 import com.practicum.playlistmaker.search.data.StorageClient
 import com.practicum.playlistmaker.search.data.network.RetrofitNetworkClient
@@ -58,4 +60,9 @@ val dataModule = module {
     single { MediaPlayer() }
 
     single {Handler(Looper.getMainLooper())}
+
+    single {
+        Room.databaseBuilder(androidContext(), TrackDatabase::class.java, "trackDatabase")
+            .build()
+    }
 }
