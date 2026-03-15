@@ -20,7 +20,7 @@ class PlayerViewModel(
 ) : ViewModel() {
 
     private var timerJob: Job? = null
-    private val playerStateLiveData = MutableLiveData<PlayerState>(PlayerState(EnumStateMode.DEFAULT, getCurrentPlayerProgress(), false))
+    private val playerStateLiveData = MutableLiveData<PlayerState>(PlayerState(EnumStateMode.DEFAULT, getCurrentPlayerProgress(), track.isFavorite))
     fun observePlayerState(): LiveData<PlayerState> = playerStateLiveData
 
     init {
@@ -85,14 +85,18 @@ class PlayerViewModel(
     fun onFavoriteClicked() {
 
         viewModelScope.launch {
-            if (track.isFavorite) {
+
+            val currentFavorite = track.isFavorite
+            if (currentFavorite) {
                 trackFavoriteTracksInteractor.removeFromFavorite(track)
+                track.isFavorite = false
             } else {
                 trackFavoriteTracksInteractor.addToFavorite(track)
+                track.isFavorite = true
             }
-        }
 
-        playerStateLiveData.postValue(PlayerState(playerStateLiveData.value!!.stateMode,getCurrentPlayerProgress(), !track.isFavorite))
+            playerStateLiveData.postValue(PlayerState(playerStateLiveData.value!!.stateMode,getCurrentPlayerProgress(), track.isFavorite))
+        }
     }
 
     companion object {

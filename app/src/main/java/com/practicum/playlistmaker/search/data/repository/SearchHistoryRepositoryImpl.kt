@@ -19,17 +19,17 @@ class SearchHistoryRepositoryImpl(
         storage.storeData(tracks)
     }
 
-    override fun getHistory(): Flow<Resource<List<Track>>> = flow {
-        val listIdFavorites = trackDatabase.trackDao().getListIdTrackEntities()
+    override fun getHistory(): Resource<List<Track>> {
+        //val listIdFavorites = trackDatabase.trackDao().getListIdTrackEntities()
         val tracks = storage.getData() ?: listOf()
 
-        for (t in tracks) {
+        /*for (t in tracks) {
             if (listIdFavorites.contains(t.trackId)) {
                 t.isFavorite = true
             }
-        }
+        }*/
 
-        emit(Resource.Success(tracks))
+        return Resource.Success(tracks)
     }
 
     override fun clearHistory() {

@@ -8,6 +8,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.databinding.FragmentMyFavoriteTracksBinding
 import com.practicum.playlistmaker.media.ui.FavoriteTracksState
@@ -44,6 +45,11 @@ class MyFavoriteTracksFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.recyclerViewFavoriteTracks.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerViewFavoriteTracks.adapter = favoriteTracksAdapter
+
+        myFavoriteTracksViewModel.fillData()
 
         myFavoriteTracksViewModel.observeFavoriteTracksState().observe(viewLifecycleOwner) {
             render(it)
@@ -86,11 +92,11 @@ class MyFavoriteTracksFragment : Fragment() {
             recyclerViewFavoriteTracks.isVisible = true
             placeholderImage.isVisible = false
             placeholderMessage.isVisible = false
-
-            favoriteTracksAdapter.tracks.clear()
-            favoriteTracksAdapter.tracks.addAll(favoriteTracks)
-            favoriteTracksAdapter.notifyDataSetChanged()
         }
+
+        favoriteTracksAdapter.tracks.clear()
+        favoriteTracksAdapter.tracks.addAll(favoriteTracks)
+        favoriteTracksAdapter.notifyDataSetChanged()
     }
 
     fun render(state: FavoriteTracksState) {
