@@ -86,22 +86,25 @@ class SearchTrackViewModel(private val tracksInteractor: TracksInteractor, priva
     }
 
     fun loadHistory() {
-       historyInteractor.getHistory(object : SearchHistoryInteractor.HistoryConsumer {
-           override fun consume(searchHistory: List<Track>?) {
-               tracksStateLiveData.postValue(TracksState.ContentHistory(searchHistory ?: emptyList()))
-           }
-       })
+        viewModelScope.launch {
+            historyInteractor.getHistory(object : SearchHistoryInteractor.HistoryConsumer {
+                override fun consume(searchHistory: List<Track>?) {
+                    tracksStateLiveData.postValue(TracksState.ContentHistory(searchHistory ?: emptyList()))
+                }
+            })
+        }
     }
 
     fun addTrackToHistory(track: Track) {
+        viewModelScope.launch {
+            historyInteractor.saveToHistory(track)
 
-        historyInteractor.saveToHistory(track)
-
-        historyInteractor.getHistory(object : SearchHistoryInteractor.HistoryConsumer {
-            override fun consume(searchHistory: List<Track>?) {
-                tracksStateLiveData.value = TracksState.ContentHistory(searchHistory ?: emptyList())
-            }
-        })
+            historyInteractor.getHistory(object : SearchHistoryInteractor.HistoryConsumer {
+                override fun consume(searchHistory: List<Track>?) {
+                    tracksStateLiveData.value = TracksState.ContentHistory(searchHistory ?: emptyList())
+                }
+            })
+        }
     }
 
     fun clearHistory() {

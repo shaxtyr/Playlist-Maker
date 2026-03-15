@@ -15,7 +15,6 @@ import com.practicum.playlistmaker.media.ui.FavoriteTracksState
 import com.practicum.playlistmaker.media.ui.viewModel.MyFavoriteTracksViewModel
 import com.practicum.playlistmaker.player.ui.PlayerFragment
 import com.practicum.playlistmaker.search.domain.entity.Track
-import com.practicum.playlistmaker.search.ui.SearchTrackFragment.Companion.CLICK_DEBOUNCE_DELAY
 import com.practicum.playlistmaker.search.ui.TracksAdapter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -62,7 +61,7 @@ class MyFavoriteTracksFragment : Fragment() {
         _binding = null
     }
 
-    private fun clickDebounce(): Boolean {
+    fun clickDebounce(): Boolean {
         val current = isClickAllowed
         if (isClickAllowed) {
             isClickAllowed = false
@@ -73,6 +72,7 @@ class MyFavoriteTracksFragment : Fragment() {
         }
         return current
     }
+
 
     fun showEmpty(message: String) {
         binding.apply {
@@ -107,6 +107,7 @@ class MyFavoriteTracksFragment : Fragment() {
     }
 
     companion object {
+        const val CLICK_DEBOUNCE_DELAY = 1000L
         fun newInstance() = MyFavoriteTracksFragment().apply {
 
         }

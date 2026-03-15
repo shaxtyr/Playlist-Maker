@@ -63,6 +63,7 @@ val dataModule = module {
 
     single {
         Room.databaseBuilder(androidContext(), TrackDatabase::class.java, "trackDatabase")
+            .fallbackToDestructiveMigration()
             .build()
     }
 }

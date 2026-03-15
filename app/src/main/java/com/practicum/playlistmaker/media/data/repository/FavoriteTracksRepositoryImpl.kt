@@ -22,8 +22,17 @@ class FavoriteTracksRepositoryImpl(
     }
 
     override fun getFavoriteTracks(): Flow<List<Track>> = flow {
-        val tracks = trackDatabase.trackDao().getTrackEntities()
-        emit(convertFromTrackEntity(tracks))
+
+        val listIdFavorites = trackDatabase.trackDao().getListIdTrackEntities()
+        val tracks = convertFromTrackEntity(trackDatabase.trackDao().getTrackEntities())
+
+        for (t in tracks) {
+            if (listIdFavorites.contains(t.trackId)) {
+                t.isFavorite = true
+            }
+        }
+
+        emit(tracks)
     }
 
     private fun convertFromTrackEntity(tracks: List<TrackEntity>): List<Track> {

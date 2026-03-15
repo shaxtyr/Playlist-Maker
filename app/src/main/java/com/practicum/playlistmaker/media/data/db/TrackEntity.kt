@@ -16,11 +16,9 @@ data class TrackEntity(
     val primaryGenreName: String,                                               //жанр
     val country: String,                                                        //страна
     val trackTime: String,                                                      // Продолжительность трека
-    val previewUrl: String
-) : Serializable {
-    fun getCoverArtwork() = artworkUrl100.replaceAfterLast('/',"512x512bb.jpg")
-    fun getYearFromReleaseDate() = releaseDate.substring(0, 4)
-}
+    val previewUrl: String,
+    val timestamp: Long = System.currentTimeMillis()
+)
 
 
 

@@ -20,7 +20,7 @@ class PlayerViewModel(
 ) : ViewModel() {
 
     private var timerJob: Job? = null
-    private val playerStateLiveData = MutableLiveData<PlayerState>(PlayerState(EnumStateMode.DEFAULT, getCurrentPlayerProgress(), track.isFavorite))
+    private val playerStateLiveData = MutableLiveData<PlayerState>(PlayerState(EnumStateMode.DEFAULT, getCurrentPlayerProgress(), false))
     fun observePlayerState(): LiveData<PlayerState> = playerStateLiveData
 
     init {
