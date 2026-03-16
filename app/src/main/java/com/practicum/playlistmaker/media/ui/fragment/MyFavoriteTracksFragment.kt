@@ -1,6 +1,7 @@
 package com.practicum.playlistmaker.media.ui.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,14 +26,19 @@ class MyFavoriteTracksFragment : Fragment() {
     private val myFavoriteTracksViewModel: MyFavoriteTracksViewModel by viewModel()
     private var _binding: FragmentMyFavoriteTracksBinding? = null
     private val binding get() = _binding!!
-    private var isClickAllowed = true
-
     private val favoriteTracksAdapter = TracksAdapter { track ->
         if (clickDebounce()) {
 
             findNavController().navigate(R.id.action_mediaFragment_to_playerFragment,
                 PlayerFragment.createArgs(track))
 
+        }
+    }
+    private var isClickAllowed = true
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
         }
     }
 
@@ -61,13 +67,13 @@ class MyFavoriteTracksFragment : Fragment() {
         _binding = null
     }
 
-    fun clickDebounce(): Boolean {
+    private fun clickDebounce(): Boolean {
         val current = isClickAllowed
         if (isClickAllowed) {
             isClickAllowed = false
             viewLifecycleOwner.lifecycleScope.launch {
-                delay(CLICK_DEBOUNCE_DELAY)
                 isClickAllowed = true
+                delay(CLICK_DEBOUNCE_DELAY)
             }
         }
         return current
@@ -107,10 +113,7 @@ class MyFavoriteTracksFragment : Fragment() {
     }
 
     companion object {
-        const val CLICK_DEBOUNCE_DELAY = 1000L
-        fun newInstance() = MyFavoriteTracksFragment().apply {
+        private const val CLICK_DEBOUNCE_DELAY = 1000L
 
-        }
     }
-
 }

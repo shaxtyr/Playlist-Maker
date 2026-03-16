@@ -144,8 +144,8 @@ class SearchTrackFragment : Fragment() {
         if (isClickAllowed) {
             isClickAllowed = false
             viewLifecycleOwner.lifecycleScope.launch {
-                delay(CLICK_DEBOUNCE_DELAY)
                 isClickAllowed = true
+                delay(CLICK_DEBOUNCE_DELAY)
             }
         }
         return current
