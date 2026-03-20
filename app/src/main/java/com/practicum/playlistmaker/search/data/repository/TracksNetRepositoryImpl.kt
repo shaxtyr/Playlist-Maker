@@ -1,6 +1,7 @@
 package com.practicum.playlistmaker.search.data.repository
 
 import com.practicum.playlistmaker.creater.Resource
+import com.practicum.playlistmaker.media.data.db.TrackDatabase
 import com.practicum.playlistmaker.search.domain.entity.Track
 import com.practicum.playlistmaker.search.domain.repository.TracksNetRepository
 import com.practicum.playlistmaker.search.data.NetworkClient
@@ -10,7 +11,9 @@ import com.practicum.playlistmaker.search.data.mapper.TrackNetMapper
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class TracksNetRepositoryImpl(private val networkClient: NetworkClient) : TracksNetRepository {
+class TracksNetRepositoryImpl(
+    private val networkClient: NetworkClient,
+    private val trackDatabase: TrackDatabase) : TracksNetRepository {
 
     override fun searchTracks(
         term: String,
@@ -25,14 +28,19 @@ class TracksNetRepositoryImpl(private val networkClient: NetworkClient) : Tracks
             }
             200 -> {
                 with(response as TracksResponse) {
+                    val listIdFavorites = trackDatabase.trackDao().getListIdTrackEntities()
                     val data = response.results.mapNotNull {
                         TrackNetMapper.toDomain(it)
                     }
+
+                    for (t in data) {
+                        if (listIdFavorites.contains(t.trackId)) {
+                            t.isFavorite = true
+                        }
+                    }
+
                     emit(Resource.Success(data))
                 }
-                    /*Resource.Success((response as TracksResponse).results.mapNotNull {
-                        TrackNetMapper.toDomain(it)
-                    })*/
             }
             else -> {
                 emit(Resource.Error(communicationProblemsMessage))

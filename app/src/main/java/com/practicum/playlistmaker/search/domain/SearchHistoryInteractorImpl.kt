@@ -8,11 +8,11 @@ class SearchHistoryInteractorImpl(
     private val repository: SearchHistoryRepository
 ) : SearchHistoryInteractor {
 
-    override fun getHistory(consumer: SearchHistoryInteractor.HistoryConsumer) {
+    override suspend fun getHistory(consumer: SearchHistoryInteractor.HistoryConsumer) {
         consumer.consume(repository.getHistory().data)
     }
 
-    override fun saveToHistory(track: Track) {
+    override suspend fun saveToHistory(track: Track) {
 
         val currentHistoryTrackList = repository.getHistory().data?.toMutableList()
 

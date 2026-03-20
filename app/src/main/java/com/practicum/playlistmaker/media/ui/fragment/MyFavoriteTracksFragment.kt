@@ -1,13 +1,24 @@
 package com.practicum.playlistmaker.media.ui.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.databinding.FragmentMyFavoriteTracksBinding
-import com.practicum.playlistmaker.databinding.FragmentMyPlaylistsBinding
+import com.practicum.playlistmaker.media.ui.FavoriteTracksState
 import com.practicum.playlistmaker.media.ui.viewModel.MyFavoriteTracksViewModel
+import com.practicum.playlistmaker.player.ui.PlayerFragment
+import com.practicum.playlistmaker.search.domain.entity.Track
+import com.practicum.playlistmaker.search.ui.TracksAdapter
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MyFavoriteTracksFragment : Fragment() {
@@ -15,6 +26,21 @@ class MyFavoriteTracksFragment : Fragment() {
     private val myFavoriteTracksViewModel: MyFavoriteTracksViewModel by viewModel()
     private var _binding: FragmentMyFavoriteTracksBinding? = null
     private val binding get() = _binding!!
+    private val favoriteTracksAdapter = TracksAdapter { track ->
+        if (clickDebounce()) {
+
+            findNavController().navigate(R.id.action_mediaFragment_to_playerFragment,
+                PlayerFragment.createArgs(track))
+
+        }
+    }
+    private var isClickAllowed = true
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -25,7 +51,14 @@ class MyFavoriteTracksFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        //обработка liveData
+        binding.recyclerViewFavoriteTracks.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerViewFavoriteTracks.adapter = favoriteTracksAdapter
+
+        myFavoriteTracksViewModel.fillData()
+
+        myFavoriteTracksViewModel.observeFavoriteTracksState().observe(viewLifecycleOwner) {
+            render(it)
+        }
 
     }
 
@@ -34,11 +67,53 @@ class MyFavoriteTracksFragment : Fragment() {
         _binding = null
     }
 
-    companion object {
+    private fun clickDebounce(): Boolean {
+        val current = isClickAllowed
+        if (isClickAllowed) {
+            isClickAllowed = false
+            viewLifecycleOwner.lifecycleScope.launch {
+                isClickAllowed = true
+                delay(CLICK_DEBOUNCE_DELAY)
+            }
+        }
+        return current
+    }
 
-        fun newInstance() = MyFavoriteTracksFragment().apply {
 
+    fun showEmpty(message: String) {
+        binding.apply {
+            recyclerViewFavoriteTracks.isVisible = false
+            placeholderImage.apply {
+                setImageResource(R.drawable.ic_nothing_120)
+                isVisible = true
+            }
+            placeholderMessage.isVisible = true
+            placeholderMessage.text = message
         }
     }
 
+    fun showContent(favoriteTracks: List<Track>) {
+        binding.apply {
+
+            recyclerViewFavoriteTracks.isVisible = true
+            placeholderImage.isVisible = false
+            placeholderMessage.isVisible = false
+        }
+
+        favoriteTracksAdapter.tracks.clear()
+        favoriteTracksAdapter.tracks.addAll(favoriteTracks)
+        favoriteTracksAdapter.notifyDataSetChanged()
+    }
+
+    fun render(state: FavoriteTracksState) {
+        when (state) {
+            is FavoriteTracksState.Empty -> showEmpty(state.message)
+            is FavoriteTracksState.Content -> showContent(state.favoriteTracks)
+        }
+    }
+
+    companion object {
+        private const val CLICK_DEBOUNCE_DELAY = 1000L
+
+    }
 }
