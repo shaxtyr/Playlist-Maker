@@ -143,9 +143,9 @@ class SearchTrackFragment : Fragment() {
         val current = isClickAllowed
         if (isClickAllowed) {
             isClickAllowed = false
-            viewLifecycleOwner.lifecycleScope.launch {
-                isClickAllowed = true
+            lifecycleScope.launch {
                 delay(CLICK_DEBOUNCE_DELAY)
+                isClickAllowed = true
             }
         }
         return current

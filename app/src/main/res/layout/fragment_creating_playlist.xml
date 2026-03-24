@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:layout="@layout/fragment_player">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".media.ui.fragment.CreatingPlaylistFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <ImageButton
+            android:id="@+id/backToMedia"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_16"
+            android:layout_marginStart="@dimen/margin_16"
+            android:layout_marginEnd="12dp"
+            android:background="@null"
+            app:layout_constraintStart_toStartOf="@id/left_guideline_16"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_arrow_back_24"
+            style="@style/BackStyleSettingsScreen"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginBottom="16dp"
+            style="@style/TopStringStyle"
+            android:text="@string/new_playlist" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/pickerImagePlaylist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="26dp"
+        android:layout_gravity="center"
+        android:scaleType="center"
+        android:background="@drawable/square_312"
+        android:src="@drawable/ic_add_photo_100"/>
+
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/editPlaylistNameLayout"
+        style="@style/CreatePlaylistTextInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:layout_marginHorizontal="@dimen/margin_16"
+        android:hint="@string/playlist_name"
+        app:hintEnabled="true">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editPlaylistName"
+            style="@style/CreatePlaylistInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLines="1" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/editPlaylistDescriptionLayout"
+        style="@style/CreatePlaylistTextInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginHorizontal="@dimen/margin_16"
+        android:hint="@string/playlist_description"
+        app:hintEnabled="true">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editPlaylistDescription"
+            style="@style/CreatePlaylistInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLines="1" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        android:id="@+id/createPlaylist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="17dp"
+        android:layout_marginTop="170dp"
+        android:layout_marginBottom="32dp"
+        android:enabled="false"
+        android:text="@string/create_playlist"
+        style="@style/ButtonCreatePlaylist"/>
+
+</LinearLayout>
+</androidx.core.widget.NestedScrollView>

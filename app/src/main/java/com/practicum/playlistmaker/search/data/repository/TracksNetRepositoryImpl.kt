@@ -28,7 +28,7 @@ class TracksNetRepositoryImpl(
             }
             200 -> {
                 with(response as TracksResponse) {
-                    val listIdFavorites = trackDatabase.trackDao().getListIdTrackEntities()
+                    val listIdFavorites = trackDatabase.trackDao().getListIdTracks()
                     val data = response.results.mapNotNull {
                         TrackNetMapper.toDomain(it)
                     }
