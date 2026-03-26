@@ -1,7 +1,6 @@
 package com.practicum.playlistmaker.media.ui
 
 import com.practicum.playlistmaker.media.domain.entity.Playlist
-import com.practicum.playlistmaker.search.ui.TracksState
 
 sealed interface PlaylistState {
 

@@ -92,7 +92,7 @@
             android:maxLines="1" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/createPlaylist"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -101,6 +101,7 @@
         android:layout_marginBottom="32dp"
         android:enabled="false"
         android:text="@string/create_playlist"
+        android:background="@drawable/create_new_playlist"
         style="@style/ButtonCreatePlaylist"/>
 
 </LinearLayout>

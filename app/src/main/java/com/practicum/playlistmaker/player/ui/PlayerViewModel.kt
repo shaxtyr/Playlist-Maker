@@ -5,8 +5,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.practicum.playlistmaker.R
+import com.practicum.playlistmaker.media.domain.entity.Playlist
 import com.practicum.playlistmaker.media.domain.interactor.FavoriteTracksInteractor
+import com.practicum.playlistmaker.media.domain.interactor.PlaylistInteractor
+import com.practicum.playlistmaker.media.ui.FavoriteTracksState
+import com.practicum.playlistmaker.media.ui.PlaylistState
 import com.practicum.playlistmaker.search.domain.entity.Track
+import com.practicum.playlistmaker.search.ui.TracksState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -16,12 +22,16 @@ import java.util.Locale
 class PlayerViewModel(
     private val track: Track,
     private val mediaPlayer: MediaPlayer,
-    private val trackFavoriteTracksInteractor: FavoriteTracksInteractor
+    private val trackFavoriteTracksInteractor: FavoriteTracksInteractor,
+    private val playlistInteractor: PlaylistInteractor
 ) : ViewModel() {
 
     private var timerJob: Job? = null
     private val playerStateLiveData = MutableLiveData<PlayerState>(PlayerState(EnumStateMode.DEFAULT, getCurrentPlayerProgress(), false))
     fun observePlayerState(): LiveData<PlayerState> = playerStateLiveData
+
+    private val playlistStateLiveData = MutableLiveData<PlaylistState>()
+    fun observePlaylistState(): LiveData<PlaylistState> = playlistStateLiveData
 
     init {
         preparedPlayer()
@@ -97,6 +107,49 @@ class PlayerViewModel(
 
             playerStateLiveData.postValue(PlayerState(playerStateLiveData.value!!.stateMode,getCurrentPlayerProgress(), track.isFavorite))
         }
+    }
+
+    fun getPlaylists(){
+        viewModelScope.launch {
+            playlistInteractor
+                .getPlaylists()
+                .collect { playlists ->
+                    processResult(playlists, "")
+                }
+        }
+    }
+
+
+    private fun processResult(currentPlaylists: List<Playlist>?, error: String) {
+        val playlists = mutableListOf<Playlist>()
+
+        if (currentPlaylists != null) {
+            playlists.clear()
+            playlists.addAll(currentPlaylists)
+        }
+
+        when {
+
+            playlists.isEmpty() -> {
+                renderPlaylistsState(
+                    PlaylistState.Empty(
+                        message = error
+                    )
+                )
+            }
+            else -> {
+                renderPlaylistsState(
+                    PlaylistState.Content(
+                        playlists
+                    )
+                )
+            }
+
+        }
+    }
+
+    private fun renderPlaylistsState(state: PlaylistState) {
+        playlistStateLiveData.postValue(state)
     }
 
     companion object {
