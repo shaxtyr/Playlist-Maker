@@ -8,6 +8,7 @@ import androidx.room.Room
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.practicum.playlistmaker.media.data.db.PlaylistDatabase
+import com.practicum.playlistmaker.media.data.db.TrackAddedToAnyPlaylistDatabase
 import com.practicum.playlistmaker.media.data.db.TrackDatabase
 import com.practicum.playlistmaker.search.data.NetworkClient
 import com.practicum.playlistmaker.search.data.StorageClient
@@ -70,6 +71,12 @@ val dataModule = module {
 
     single {
         Room.databaseBuilder(androidContext(), PlaylistDatabase::class.java, "playlistDatabase")
+            .fallbackToDestructiveMigration()
+            .build()
+    }
+
+    single {
+        Room.databaseBuilder(androidContext(), TrackAddedToAnyPlaylistDatabase::class.java, "trackAddedToAnyPlaylistDatabase")
             .fallbackToDestructiveMigration()
             .build()
     }

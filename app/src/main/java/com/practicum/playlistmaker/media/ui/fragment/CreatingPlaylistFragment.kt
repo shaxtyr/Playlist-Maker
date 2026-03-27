@@ -11,11 +11,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.doOnTextChanged
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.databinding.FragmentCreatingPlaylistBinding
 import com.practicum.playlistmaker.media.domain.entity.Playlist
 import com.practicum.playlistmaker.media.ui.viewModel.CreatingPlaylistFragmentViewModel
@@ -45,11 +47,11 @@ class CreatingPlaylistFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         confirmDialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Завершить создание плейлиста?")
-            .setMessage("Все несохраненные данные будут потеряны")
-            .setNeutralButton("Отмена") { dialog, which ->
+            .setTitle(getString(R.string.finish_creating_playlist))
+            .setMessage(getString(R.string.cancel))
+            .setNeutralButton(getString(R.string.data_wii_be_lost)) { dialog, which ->
                 // ничего не делаем
-            }.setPositiveButton("Завершить") { dialog, which ->
+            }.setPositiveButton(getString(R.string.finish)) { dialog, which ->
                 findNavController().navigateUp()
             }
 
@@ -89,13 +91,23 @@ class CreatingPlaylistFragment : Fragment() {
                 binding.editPlaylistName.text.toString(),
                 binding.editPlaylistDescription.text.toString(),
                 imagePath,
-                "",
+                emptyList(),
                 0
             )
             creatingPlaylistFragmentViewModel.addToPlaylistDatabase(playlist)
             findNavController().navigateUp()
             Toast.makeText(requireContext(), "Плейлист ${binding.editPlaylistName.text} создан", Toast.LENGTH_LONG).show()
         }
+
+        requireActivity().onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.editPlaylistName.text.toString().isNotEmpty() || binding.editPlaylistDescription.text.toString().isNotEmpty() || isUserImageSet) {
+                    confirmDialog.show()
+                } else {
+                    findNavController().navigateUp()
+                }
+            }
+        })
 
     }
 

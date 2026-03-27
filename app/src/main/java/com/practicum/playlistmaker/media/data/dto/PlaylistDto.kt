@@ -3,8 +3,8 @@ package com.practicum.playlistmaker.media.data.dto
 data class PlaylistDto(
     val playlistId: Long,
     val playlistName: String,
-    val playlistDescription: String,
-    val imagePath: String,
-    val listIdTracks: String,
+    val playlistDescription: String?,
+    val imagePath: String?,
+    val listIdTracks: List<Long>,
     val numberOfTracks: Long
 )

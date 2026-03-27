@@ -27,6 +27,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:layout_marginTop="46dp"
         android:layout_marginBottom="16dp"
         android:src="@drawable/ic_nothing_120"
         tools:src="@tools:sample/avatars"/>

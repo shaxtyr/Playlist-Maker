@@ -2,31 +2,45 @@ package com.practicum.playlistmaker.media.data.repository
 
 import com.practicum.playlistmaker.media.data.db.PlaylistDatabase
 import com.practicum.playlistmaker.media.data.db.PlaylistEntity
+import com.practicum.playlistmaker.media.data.db.TrackAddedToAnyPlaylistDatabase
+import com.practicum.playlistmaker.media.data.dto.PlaylistDto
 import com.practicum.playlistmaker.media.data.mapper.PlaylistDbConvertor
+import com.practicum.playlistmaker.media.data.mapper.TrackAddedToAnyPlaylistDbConvertor
 import com.practicum.playlistmaker.media.domain.entity.Playlist
 import com.practicum.playlistmaker.media.domain.repository.PlaylistRepository
+import com.practicum.playlistmaker.search.domain.entity.Track
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class PlaylistRepositoryImpl(
     private val playlistDatabase: PlaylistDatabase,
-    private val playlistDbConvertor: PlaylistDbConvertor
+    private val playlistDbConvertor: PlaylistDbConvertor,
+    private val trackAddedToAnyPlaylistDatabase: TrackAddedToAnyPlaylistDatabase,
+    private val trackAddedToAnyPlaylistDbConvertor: TrackAddedToAnyPlaylistDbConvertor,
 ) : PlaylistRepository {
     override suspend fun createPlaylist(playlist: Playlist) {
-        playlistDatabase.playlistDao().insertPlaylist(playlistDbConvertor.map(playlist))
+        playlistDatabase.playlistDao().insertPlaylist(playlistDbConvertor.map(playlistDbConvertor.toData(playlist)))
     }
 
     override suspend fun updatePlaylist(playlist: Playlist) {
-        playlistDatabase.playlistDao().updatePlaylist(playlistDbConvertor.map(playlist))
+        playlistDatabase.playlistDao().updatePlaylist(playlistDbConvertor.map(playlistDbConvertor.toData(playlist)))
     }
 
     override fun getPlaylists(): Flow<List<Playlist>> = flow {
         val playlists = convertFromPlaylistEntity(playlistDatabase.playlistDao().getPlaylists())
-        emit(playlists)
+        emit(playlists.map { playlistDbConvertor.toDomain(it) })
     }
 
-    private fun convertFromPlaylistEntity(playlists: List<PlaylistEntity>): List<Playlist> {
+    override suspend fun addToPlaylist(
+        track: Track,
+        playlist: Playlist
+    ) {
+        val updatedPlaylist = playlist.copy(listIdTracks = playlist.listIdTracks + track.trackId, numberOfTracks = playlist.numberOfTracks + 1)
+        playlistDatabase.playlistDao().updatePlaylist(playlistDbConvertor.map(playlistDbConvertor.toData(updatedPlaylist)))
+        trackAddedToAnyPlaylistDatabase.trackAddedToAnyPlaylistDao().insertTrackAddedToAnyPlaylistEntity(trackAddedToAnyPlaylistDbConvertor.map(track))
+    }
+
+    private fun convertFromPlaylistEntity(playlists: List<PlaylistEntity>): List<PlaylistDto> {
         return playlists.map { playlist -> playlistDbConvertor.map(playlist) }
     }
-
 }

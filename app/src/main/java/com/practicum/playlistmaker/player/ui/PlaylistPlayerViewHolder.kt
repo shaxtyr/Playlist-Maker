@@ -17,6 +17,7 @@ class PlaylistPlayerViewHolder(private val binding: ItemPlaylistPlayerBinding): 
         Glide.with(binding.root)
             .load(model.imagePath)
             .placeholder(R.drawable.placeholder_104)
+            .fitCenter()
             .transform(RoundedCorners(dpToPx(2f, binding.root.context)))
             .into(binding.playlistCover)
 
