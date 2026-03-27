@@ -48,8 +48,8 @@ class CreatingPlaylistFragment : Fragment() {
 
         confirmDialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.finish_creating_playlist))
-            .setMessage(getString(R.string.cancel))
-            .setNeutralButton(getString(R.string.data_wii_be_lost)) { dialog, which ->
+            .setMessage(getString(R.string.data_wii_be_lost))
+            .setNeutralButton(getString(R.string.cancel)) { dialog, which ->
                 // ничего не делаем
             }.setPositiveButton(getString(R.string.finish)) { dialog, which ->
                 findNavController().navigateUp()
