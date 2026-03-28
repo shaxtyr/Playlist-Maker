@@ -61,13 +61,13 @@ class PlayerFragment : Fragment(){
                 val message = when(it.addedTrackToPlaylistState) {
 
                     is AddedTrackToPlaylistState.AlreadyInPlaylist -> {
-                        getString(R.string.track_already_added) + " " + it.addedTrackToPlaylistState.playlistName
+                        getString(R.string.track_already_added, it.addedTrackToPlaylistState.playlistName)
                     }
 
                     is AddedTrackToPlaylistState.AddedToPlayList -> {
                         viewModel.getPlaylists()
                         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-                        getString(R.string.track_added) + " " +it.addedTrackToPlaylistState.playlistName
+                        getString(R.string.track_added, it.addedTrackToPlaylistState.playlistName)
 
                     }
 

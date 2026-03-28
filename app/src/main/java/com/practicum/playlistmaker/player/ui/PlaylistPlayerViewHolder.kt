@@ -22,6 +22,7 @@ class PlaylistPlayerViewHolder(private val binding: ItemPlaylistPlayerBinding): 
             .into(binding.playlistCover)
 
         binding.playlistName.text = model.playlistName
+        //binding.playlistNumberTracks.text = getPlurals(model.numberOfTracks, binding.root.context)
         binding.playlistNumberTracks.text = model.numberOfTracks.toString() + tracksWord(model.numberOfTracks)
     }
 
@@ -32,7 +33,9 @@ class PlaylistPlayerViewHolder(private val binding: ItemPlaylistPlayerBinding): 
             context.resources.displayMetrics).toInt()
     }
 
-    fun tracksWord(numbers: Long): String {
+    //fun getPlurals(number: Int, context: Context) = context.resources.getQuantityString(R.plurals.track_count, number, number)
+
+    fun tracksWord(numbers: Int): String {
         val lastDigit = numbers.toString().last().digitToInt()
         return if (numbers in 10..20) {
             " треков"

@@ -53,7 +53,7 @@ class MyPlaylistsFragment : Fragment() {
     }
 
     fun showEmpty(message: String) {
-        binding.apply {
+        with(binding) {
             recyclerViewPlaylist.isVisible = false
             placeholderImage.apply {
                 setImageResource(R.drawable.ic_nothing_120)
@@ -65,7 +65,7 @@ class MyPlaylistsFragment : Fragment() {
     }
 
     fun showContent(playlists: List<Playlist>) {
-        binding.apply {
+        with(binding) {
 
             recyclerViewPlaylist.isVisible = true
             placeholderImage.isVisible = false

@@ -1,5 +1,6 @@
 package com.practicum.playlistmaker.media.ui.fragment
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -16,10 +17,13 @@ class PlaylistViewHolder(private val binding: ItemPlaylistBinding): RecyclerView
             .placeholder(R.drawable.placeholder_104)
             .into(binding.playlistCover)
         binding.playlistName.text = model.playlistName
+        //binding.numberOfTrack.text = getPlurals(model.numberOfTracks.toInt(), binding.root.context)
         binding.numberOfTrack.text = model.numberOfTracks.toString() + tracksWord(model.numberOfTracks)
     }
 
-    fun tracksWord(numbers: Long): String {
+    //fun getPlurals(number: Int, context: Context) = context.resources.str
+
+    fun tracksWord(numbers: Int): String {
         val lastDigit = numbers.toString().last().digitToInt()
         return if (numbers in 10..20) {
             " треков"

@@ -82,7 +82,7 @@ class CreatingPlaylistFragment : Fragment() {
         val playlistName = binding.editPlaylistNameLayout.editText
 
         playlistName?.doOnTextChanged { inputText, _, _, _ ->
-            binding.createPlaylist.isEnabled = !inputText.isNullOrEmpty()
+            binding.createPlaylist.isEnabled = !(inputText.isNullOrEmpty() || inputText.isBlank())
         }
 
         binding.createPlaylist.setOnClickListener {
@@ -96,7 +96,7 @@ class CreatingPlaylistFragment : Fragment() {
             )
             creatingPlaylistFragmentViewModel.addToPlaylistDatabase(playlist)
             findNavController().navigateUp()
-            Toast.makeText(requireContext(), "Плейлист ${binding.editPlaylistName.text} создан", Toast.LENGTH_LONG).show()
+            Toast.makeText(requireContext(), getString(R.string.playlist_creating, binding.editPlaylistName.text), Toast.LENGTH_LONG).show()
         }
 
         requireActivity().onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -117,12 +117,15 @@ class CreatingPlaylistFragment : Fragment() {
     }
 
     private fun saveImageToPrivateStore(uri: Uri) {
-        val filePath = File(requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES), "mycovers")
+        val filePath = File(requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES), getString(R.string.my_covers))
         if (!filePath.exists()) {
             filePath.mkdirs()
         }
 
-        val file = File(filePath, "cover.jpg")
+        val timestamp = System.currentTimeMillis()
+        val timeStampFileName = getString(R.string.file_name_time_stamp, timestamp)
+        val file = File(filePath, timeStampFileName)
+
         val inputStream = requireActivity().contentResolver.openInputStream(uri)
         val outputStream = FileOutputStream(file)
         BitmapFactory
