@@ -5,8 +5,6 @@ import com.practicum.playlistmaker.media.data.db.TrackDatabase
 import com.practicum.playlistmaker.search.domain.entity.Track
 import com.practicum.playlistmaker.search.data.StorageClient
 import com.practicum.playlistmaker.search.domain.repository.SearchHistoryRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 
 class SearchHistoryRepositoryImpl(
     private val storage: StorageClient<ArrayList<Track>>,
@@ -20,7 +18,7 @@ class SearchHistoryRepositoryImpl(
     }
 
     override suspend fun getHistory(): Resource<List<Track>> {
-        val listIdFavorites = trackDatabase.trackDao().getListIdTrackEntities()
+        val listIdFavorites = trackDatabase.trackDao().getListIdTracks()
         val tracks = storage.getData() ?: listOf()
 
         for (t in tracks) {

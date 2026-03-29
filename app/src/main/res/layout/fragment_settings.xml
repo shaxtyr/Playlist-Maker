@@ -28,7 +28,6 @@
         android:paddingVertical="21dp"
         android:text="@string/dark_theme_settings"
         style="@style/SwitchStyleSettingsScreen" />
-
     <TextView
         android:id="@+id/share_app"
         android:layout_width="match_parent"
