@@ -5,6 +5,6 @@ data class PlaylistDto(
     val playlistName: String,
     val playlistDescription: String?,
     val imagePath: String?,
-    val listIdTracks: List<Long>,
+    val listIdTracks: List<Int>,
     val numberOfTracks: Int
 )

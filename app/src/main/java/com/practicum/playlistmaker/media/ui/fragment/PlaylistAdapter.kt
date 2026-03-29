@@ -3,8 +3,10 @@ package com.practicum.playlistmaker.media.ui.fragment
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.practicum.playlistmaker.media.domain.entity.Playlist
+import com.practicum.playlistmaker.search.domain.entity.Track
+import com.practicum.playlistmaker.search.ui.TracksAdapter.TrackClickListener
 
-class PlaylistAdapter() : RecyclerView.Adapter<PlaylistViewHolder>() {
+class PlaylistAdapter(val clickListener: PlaylistClickListener) : RecyclerView.Adapter<PlaylistViewHolder>() {
 
     val playlists = ArrayList<Playlist>()
 
@@ -18,10 +20,17 @@ class PlaylistAdapter() : RecyclerView.Adapter<PlaylistViewHolder>() {
         position: Int
     ) {
         holder.bind(playlists[position])
+        holder.itemView.setOnClickListener {
+            clickListener.onPlaylistClick(playlists[position])
+        }
     }
 
     override fun getItemCount(): Int {
         return playlists.size
+    }
+
+    fun interface PlaylistClickListener {
+        fun onPlaylistClick(playlist: Playlist)
     }
 
 }

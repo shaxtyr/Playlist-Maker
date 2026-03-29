@@ -21,10 +21,18 @@ class PlaylistInteractorImpl(
         return playlistRepository.getPlaylists()
     }
 
+    override suspend fun getPlaylistById(playlistId: Long): Playlist {
+        return playlistRepository.getPlaylistById(playlistId)
+    }
+
     override suspend fun addToPlaylist(
         track: Track,
         playlist: Playlist
     ) {
         playlistRepository.addToPlaylist(track, playlist)
+    }
+
+    override fun getTracksFromPlaylist(listIdTracks: List<Int>): Flow<List<Track>> {
+        return playlistRepository.getTracksFromPlaylist(listIdTracks)
     }
 }

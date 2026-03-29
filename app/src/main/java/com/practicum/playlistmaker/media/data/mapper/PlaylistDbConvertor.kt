@@ -52,11 +52,11 @@ class PlaylistDbConvertor(private val gson: Gson) {
             )
     }
 
-    fun convertToJson(data: List<Long>): String {
+    fun convertToJson(data: List<Int>): String {
         return gson.toJson(data)
     }
 
-    fun parseJson(jsonString: String): List<Long> {
+    fun parseJson(jsonString: String): List<Int> {
         val type = object : TypeToken<List<Int>>() {}.type
         return gson.fromJson(jsonString, type)
     }

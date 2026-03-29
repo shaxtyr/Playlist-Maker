@@ -158,4 +158,12 @@
         <item name="android:textAllCaps">false</item>
     </style>
 
+    <style name="PlaylistNameStylePlaylistDetailsScreen">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:fontFamily">@font/ys_display_bold</item>
+        <item name="android:textFontWeight">700</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
 </resources>

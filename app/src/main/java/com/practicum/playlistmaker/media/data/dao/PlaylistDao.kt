@@ -19,4 +19,8 @@ interface PlaylistDao {
     @Query("SELECT * FROM playlist_table ORDER BY timestamp DESC")
     suspend fun getPlaylists(): List<PlaylistEntity>
 
+    @Query("SELECT * FROM playlist_table WHERE playlistId = :playlistId")
+    suspend fun getPlaylistById(playlistId: Long): PlaylistEntity
+
+
 }

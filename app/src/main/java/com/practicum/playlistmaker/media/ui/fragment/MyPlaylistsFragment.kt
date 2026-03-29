@@ -1,6 +1,8 @@
 package com.practicum.playlistmaker.media.ui.fragment
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +15,7 @@ import com.practicum.playlistmaker.databinding.FragmentMyPlaylistsBinding
 import com.practicum.playlistmaker.media.domain.entity.Playlist
 import com.practicum.playlistmaker.media.ui.PlaylistState
 import com.practicum.playlistmaker.media.ui.viewModel.MyPlaylistsViewModel
+import com.practicum.playlistmaker.player.ui.PlayerFragment
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MyPlaylistsFragment : Fragment() {
@@ -21,7 +24,10 @@ class MyPlaylistsFragment : Fragment() {
     private var _binding: FragmentMyPlaylistsBinding? = null
     private val binding get() = _binding!!
 
-    private val playlistAdapter = PlaylistAdapter()
+    private val playlistAdapter = PlaylistAdapter {playlist ->
+        findNavController().navigate(R.id.action_mediaFragment_to_playlistDetailsFragment,
+            PlaylistDetailsFragment.createArgs(playlist.playlistId))
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -83,6 +89,7 @@ class MyPlaylistsFragment : Fragment() {
             is PlaylistState.Content -> showContent(state.playlists)
         }
     }
+
 
     companion object {
         fun newInstance() = MyPlaylistsFragment().apply {

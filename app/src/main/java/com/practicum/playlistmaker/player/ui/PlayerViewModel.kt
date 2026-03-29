@@ -1,19 +1,14 @@
 package com.practicum.playlistmaker.player.ui
 
 import android.media.MediaPlayer
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.media.domain.entity.Playlist
 import com.practicum.playlistmaker.media.domain.interactor.FavoriteTracksInteractor
 import com.practicum.playlistmaker.media.domain.interactor.PlaylistInteractor
-import com.practicum.playlistmaker.media.ui.FavoriteTracksState
-import com.practicum.playlistmaker.media.ui.PlaylistState
 import com.practicum.playlistmaker.search.domain.entity.Track
-import com.practicum.playlistmaker.search.ui.TracksState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -127,7 +122,7 @@ class PlayerViewModel(
         val listIdPlaylist = playlist.listIdTracks
 
         listIdPlaylist.forEach {
-            if (it == trackId) {
+            if (it.toLong() == trackId) {
                 playerStateLiveData.postValue(PlayerState(
                     playerStateLiveData.value!!.stateMode,
                     getCurrentPlayerProgress(),
