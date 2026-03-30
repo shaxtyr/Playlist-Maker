@@ -1,20 +1,24 @@
 package com.practicum.playlistmaker.media.ui.fragment
 
+import android.graphics.BitmapFactory
 import com.practicum.playlistmaker.R
 import android.icu.text.SimpleDateFormat
+import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.core.net.toUri
 import androidx.core.os.bundleOf
+import androidx.core.view.doOnAttach
 import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.practicum.playlistmaker.databinding.FragmentPlaylistDetailsBinding
@@ -32,6 +36,7 @@ class PlaylistDetailsFragment : Fragment() {
     private var _binding: FragmentPlaylistDetailsBinding? = null
     private val binding get() = _binding!!
     private var playlistId: Long = 0
+    private var messageForShare = ""
     private lateinit var viewModel: PlaylistDetailsViewModel
 
     lateinit var confirmDialog: MaterialAlertDialogBuilder
@@ -42,7 +47,7 @@ class PlaylistDetailsFragment : Fragment() {
             findNavController().navigate(R.id.action_playlistDetailsFragment_to_playerFragment,
             PlayerFragment.createArgs(track)) },
 
-        longClickListener = { track -> showDialog(track.trackId) }
+        longClickListener = { track -> showDialogRemoveTrack(track.trackId) }
     )
 
     override fun onCreateView(
@@ -64,6 +69,10 @@ class PlaylistDetailsFragment : Fragment() {
             state = BottomSheetBehavior.STATE_HIDDEN
         }
 
+        val actionBottomSheetBehavior = BottomSheetBehavior.from(binding.actionsBottomSheet).apply {
+            state = BottomSheetBehavior.STATE_HIDDEN
+        }
+
         playlistId = requireArguments().get(PLAYLIST_ID) as Long
 
         viewModel = getKoin().get { parametersOf(playlistId) }
@@ -72,6 +81,32 @@ class PlaylistDetailsFragment : Fragment() {
 
         viewModel.observeTracksAddedToCurrentPlaylistState().observe(viewLifecycleOwner) {
             setPlaylistContent(it.playlist, it.tracks)
+        }
+
+        binding.shareTracks.setOnClickListener {
+            if (messageForShare.isEmpty()) {
+                Toast.makeText(requireContext(), getString(R.string.empty_list_message), Toast.LENGTH_LONG).show()
+            } else {
+                viewModel.shareMyPlaylist(messageForShare)
+            }
+        }
+
+        binding.actionShare.setOnClickListener {
+            if (messageForShare.isEmpty()) {
+                Toast.makeText(requireContext(), getString(R.string.empty_list_message), Toast.LENGTH_LONG).show()
+            } else {
+                viewModel.shareMyPlaylist(messageForShare)
+            }
+        }
+
+        binding.actionDelete.setOnClickListener {
+            actionBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+            showDialogRemovePlaylist()
+        }
+
+        binding.actions.setOnClickListener {
+            actionBottomSheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+            updateTracksPeekHeightActions()
         }
 
         binding.backToMedia.setOnClickListener {
@@ -84,15 +119,45 @@ class PlaylistDetailsFragment : Fragment() {
             }
         })
 
+        actionBottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+
+                when (newState) {
+                    BottomSheetBehavior.STATE_HIDDEN -> {
+                        binding.overlay.visibility = View.GONE
+                    }
+                    else -> {
+                        binding.overlay.visibility = View.VISIBLE
+                    }
+                }
+            }
+
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                binding.overlay.alpha = (slideOffset + 1f)/2
+            }
+        })
+
     }
 
-    fun showDialog(trackId: Long) {
+    fun showDialogRemoveTrack(trackId: Long) {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.remove_track))
             .setNegativeButton(getString(R.string.no)) { dialog, which ->
                 // ничего не делаем
             }.setPositiveButton(getString(R.string.yes)) { dialog, which ->
                 viewModel.removeTrackFromPlaylist(trackId)
+            }.show()
+    }
+    fun showDialogRemovePlaylist() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.remove_playlist))
+            .setNegativeButton(getString(R.string.no)) { dialog, which ->
+                // ничего не делаем
+            }.setPositiveButton(getString(R.string.yes)) { dialog, which ->
+                viewModel.removePlaylist()
+                findNavController().navigateUp()
+
             }.show()
     }
 
@@ -105,13 +170,22 @@ class PlaylistDetailsFragment : Fragment() {
         val totalTimeMills = tracks.sumOf { parseTimeToMillis(it.trackTime) }
         val totalTimeMinutes = SimpleDateFormat("mm", Locale.getDefault()).format(totalTimeMills)
 
-        Glide.with(requireContext())
-            .load(playlist.imagePath?.toUri())
+        Glide.with(this@PlaylistDetailsFragment)
+            .load(playlist.imagePath)
             .placeholder(R.drawable.placeholder_312)
+            .error(R.drawable.placeholder_312)
             .into(binding.playlistCover)
 
+        Glide.with(this@PlaylistDetailsFragment)
+            .load(playlist.imagePath)
+            .placeholder(R.drawable.placeholder_104)
+            .error(R.drawable.placeholder_104)
+            .into(binding.playlistCoverBottomSheet)
+
         with(binding) {
+
             playlistName.text = playlist.playlistName
+            playlistNameBottomSheet.text = playlist.playlistName
 
             if (playlist.playlistDescription.isNullOrEmpty()) {
                 playlistDescription.isVisible = false
@@ -121,9 +195,16 @@ class PlaylistDetailsFragment : Fragment() {
             }
 
             tracksTime.text = getPluralsMinutes(totalTimeMinutes.toLong())
+
             tracksNumber.text = getPluralsTracks(playlist.numberOfTracks.toLong())
+            playlistNumberTracksBottomSheet.text = getPluralsTracks(playlist.numberOfTracks.toLong())
+
+            binding.emptyListInfo.isVisible = playlist.numberOfTracks == 0
 
             updateTracksPeekHeight()
+
+
+            messageForShare = getMessageForShare(tracks, playlist.playlistName, playlist.playlistDescription, getPluralsTracks(playlist.numberOfTracks.toLong()))
 
             recyclerViewPlaylistDetails.isVisible = true
             playlistDetailsAdapter.tracks.clear()
@@ -132,13 +213,27 @@ class PlaylistDetailsFragment : Fragment() {
         }
     }
 
+    fun getMessageForShare(tracks: List<Track>, vararg lines: String?): String {
+
+        if (tracks.isNotEmpty()) {
+            val tracksText = tracks.mapIndexed { index, track ->
+                "${index + 1}. ${track.artistName} - ${track.trackName} (${track.trackTime})"
+            }.joinToString("\n")
+
+            return lines.filterNot { it.isNullOrBlank() }.joinToString("\n") + "\n" + tracksText
+        } else {
+            return ""
+        }
+
+    }
+
     fun parseTimeToMillis(timeString: String): Long {
         val parts = timeString.split(":")
 
         val minutes = parts[0].toLong()
         val seconds = parts[1].toLong()
 
-        return (minutes * 60 + seconds) * 1000 // Перевод в миллисекунды
+        return (minutes * 60 + seconds) * 1000
     }
     private fun getPluralsMinutes(totalTime: Long): String {
         return requireContext().resources.getQuantityString(R.plurals.minutes_count, totalTime.toInt(), totalTime)
@@ -155,6 +250,18 @@ class PlaylistDetailsFragment : Fragment() {
             val location = IntArray(2)
             binding.actions.getLocationInWindow(location)
             val shareButtonBottomInWindow = location[1] + binding.actions.height
+            tracksBehavior.peekHeight = screenHeight - shareButtonBottomInWindow - 16
+        }
+    }
+
+    private fun updateTracksPeekHeightActions() {
+        binding.playlistName.post {
+            if (_binding == null) return@post
+            val tracksBehavior = BottomSheetBehavior.from(binding.actionsBottomSheet)
+            val screenHeight = binding.root.height
+            val location = IntArray(2)
+            binding.playlistName.getLocationInWindow(location)
+            val shareButtonBottomInWindow = location[1] + binding.playlistName.height
             tracksBehavior.peekHeight = screenHeight - shareButtonBottomInWindow - 16
         }
     }

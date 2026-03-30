@@ -39,7 +39,7 @@ val viewModelModule = module {
     }
 
     viewModel { params ->
-        PlaylistDetailsViewModel(params.get(), get())
+        PlaylistDetailsViewModel(params.get(), get(), get())
     }
 
 

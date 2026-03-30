@@ -141,12 +141,113 @@
             android:layout_marginTop="8dp"
             android:background="@drawable/rounder" />
 
+        <TextView
+            android:id="@+id/emptyListInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:padding="16dp"
+            android:visibility="gone"
+            android:text="@string/empty_list_info"
+            style="@style/ActionsStylePlaylistDetailsScreen" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewPlaylistDetails"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp" />
+            android:layout_marginTop="24dp"
+            tools:listitem="@layout/item_playlist_player"/>
+    </LinearLayout>
 
+    <View
+        android:id="@+id/overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/actionsBottomSheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bottom_sheet_bg"
+        android:orientation="vertical"
+        app:behavior_hideable="true"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior" >
+
+        <View
+            android:layout_width="50dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/rounder" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp">
+
+            <ImageView
+                android:id="@+id/playlistCoverBottomSheet"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="13dp"
+                android:layout_marginVertical="8dp"
+                tools:src="@tools:sample/avatars" />
+
+            <TextView
+                android:id="@+id/playlistNameBottomSheet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="66dp"
+                android:layout_marginEnd="50dp"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="28dp"
+                style="@style/TextTrackNameStyleSearchScreen"
+                tools:text="@string/nothing_found"/>
+
+            <TextView
+                android:id="@+id/playlistNumberTracksBottomSheet"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="66dp"
+                android:layout_marginTop="34dp"
+                style="@style/TextArtistNameStyleSearchScreen"
+                tools:text="@string/nothing_found"/>
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/actionShare"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:paddingVertical="21dp"
+            android:paddingStart="@dimen/margin_16"
+            android:paddingEnd="44dp"
+            style="@style/ActionsStylePlaylistDetailsScreen"
+            android:text="@string/share_playlist" />
+
+        <TextView
+            android:id="@+id/actionEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="21dp"
+            android:paddingStart="@dimen/margin_16"
+            android:paddingEnd="44dp"
+            style="@style/ActionsStylePlaylistDetailsScreen"
+            android:text="@string/edit_playlist" />
+
+        <TextView
+            android:id="@+id/actionDelete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="21dp"
+            android:paddingStart="@dimen/margin_16"
+            android:paddingEnd="44dp"
+            style="@style/ActionsStylePlaylistDetailsScreen"
+            android:text="@string/delete_playlist" />
 
     </LinearLayout>
 

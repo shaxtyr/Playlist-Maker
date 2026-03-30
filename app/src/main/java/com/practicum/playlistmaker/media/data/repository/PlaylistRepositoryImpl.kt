@@ -69,14 +69,24 @@ class PlaylistRepositoryImpl(
 
         playlistDatabase.playlistDao().updatePlaylist(playlistDbConvertor.map(playlistDbConvertor.toData(updatedPlaylist)))
 
+        removeUnusedTrack(trackId)
 
-        val playlists = playlistDatabase.playlistDao().getPlaylists()
+        /*val playlists = playlistDatabase.playlistDao().getPlaylists()
         val isTrackInAnyPlaylist = playlists.any { playlist ->
             playlistDbConvertor.parseJson(playlist.listIdTracks).contains(trackId.toInt())
         }
         if (!isTrackInAnyPlaylist) {
             trackAddedToAnyPlaylistDatabase.trackAddedToAnyPlaylistDao().deleteTrackEntity(trackId)
+        }*/
+    }
+
+    override suspend fun removePlaylist(playlist: Playlist) {
+        playlistDatabase.playlistDao().deletePlaylistById(playlist.playlistId)
+
+        playlist.listIdTracks.forEach { trackId ->
+            removeUnusedTrack(trackId.toLong())
         }
+
     }
 
     private fun convertFromPlaylistEntity(playlists: List<PlaylistEntity>): List<PlaylistDto> {
@@ -85,5 +95,16 @@ class PlaylistRepositoryImpl(
 
     private fun convertFromTrackAddedToAnyPlaylistEntity(trackAddedToAnyPlaylistEntity: List<TrackAddedToAnyPlaylistEntity>): List<TrackAddedToAnyPlaylistDto> {
         return trackAddedToAnyPlaylistEntity.map { trackAddedToAnyPlaylistEntity -> trackAddedToAnyPlaylistDbConvertor.map(trackAddedToAnyPlaylistEntity) }
+    }
+
+    private suspend fun removeUnusedTrack(trackId: Long) {
+
+        val playlists = playlistDatabase.playlistDao().getPlaylists()
+        val isTrackInAnyPlaylist = playlists.any { playlist ->
+            playlistDbConvertor.parseJson(playlist.listIdTracks).contains(trackId.toInt())
+        }
+        if (!isTrackInAnyPlaylist) {
+            trackAddedToAnyPlaylistDatabase.trackAddedToAnyPlaylistDao().deleteTrackEntity(trackId)
+        }
     }
 }

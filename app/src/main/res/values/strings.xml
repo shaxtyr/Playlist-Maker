@@ -74,5 +74,10 @@
 
     <string name="total_time_tracks">"%1$s %2$s</string>
     <string name="count_tracks">"%1$d %2$s</string>
+    <string name="empty_list_info">"В этом плейлисте еще нет треков</string>
+    <string name="empty_list_message">"В этом плейлисте нет списка треков, которым можно поделиться</string>
+    <string name="share_playlist">"Поделиться</string>
+    <string name="edit_playlist">"Редактировать информацию</string>
+    <string name="delete_playlist">"Удалить плейлист</string>
 
 </resources>
