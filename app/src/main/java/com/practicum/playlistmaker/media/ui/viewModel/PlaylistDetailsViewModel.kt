@@ -23,7 +23,6 @@ class PlaylistDetailsViewModel(
      fun getPlaylistById() {
         viewModelScope.launch {
             val currentPlaylist = playlistInteractor.getPlaylistById(receivedPlaylistId)
-            //getAddedTracksToCurrentPlaylist(currentPlaylist)
 
             playlistInteractor
                 .getTracksFromPlaylist(currentPlaylist.listIdTracks)
@@ -37,13 +36,18 @@ class PlaylistDetailsViewModel(
         }
     }
 
-    fun getAddedTracksToCurrentPlaylist(playlist: Playlist) {
+    fun removeTrackFromPlaylist(trackId: Long) {
+        val currentPlaylist = tracksAddedToCurrentPlaylistStateLiveData.value!!.playlist
         viewModelScope.launch {
-            playlistInteractor
-                .getTracksFromPlaylist(playlist.listIdTracks)
-                .collect { tracks ->
-                    tracksAddedToCurrentPlaylist = tracks.toMutableList()
-                }
+            playlistInteractor.removeTrackFromPlaylist(trackId, currentPlaylist)
+
+            playlistInteractor.getTracksFromPlaylist(currentPlaylist.listIdTracks).collect {tracks ->
+                tracksAddedToCurrentPlaylist = tracks.toMutableList()
+            }
+
+            tracksAddedToCurrentPlaylistStateLiveData.postValue(TracksAddedToCurrentPlaylistState (
+                currentPlaylist.copy(numberOfTracks = tracksAddedToCurrentPlaylist.size),
+                tracksAddedToCurrentPlaylist))
         }
     }
 

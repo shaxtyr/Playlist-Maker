@@ -57,13 +57,26 @@ class PlaylistRepositoryImpl(
         val gettingTrack = gettingTrackAddedToAnyPlaylistDto.map { trackAddedToAnyPlaylistDbConvertor.toDomain(it) }
 
         emit(gettingTrack)
+    }
+
+    override suspend fun removeTrackFromPlaylist(trackId: Long, playlist: Playlist) {
+
+        val updatedListIdTracks = playlist.listIdTracks.toMutableList().apply {
+            remove(trackId.toInt())
+        }
+
+        val updatedPlaylist = playlist.copy(listIdTracks = updatedListIdTracks, numberOfTracks = updatedListIdTracks.size)
+
+        playlistDatabase.playlistDao().updatePlaylist(playlistDbConvertor.map(playlistDbConvertor.toData(updatedPlaylist)))
 
 
-        /*override fun getTracksFromPlaylist(listIdTracks: List<Int>): Flow<List<Track>> = flow {
-            val gettingTracksAddedToAnyPlaylistEntity = trackAddedToAnyPlaylistDatabase.trackAddedToAnyPlaylistDao().getAddedTracks(listIdTracks)
-            val gettingTrackAddedToAnyPlaylistDto = convertFromTrackAddedToAnyPlaylistEntity(gettingTracksAddedToAnyPlaylistEntity)
-            val gettingTrack = gettingTrackAddedToAnyPlaylistDto.map { trackAddedToAnyPlaylistDbConvertor.toDomain(it) }
-            emit(gettingTrack) }*/
+        val playlists = playlistDatabase.playlistDao().getPlaylists()
+        val isTrackInAnyPlaylist = playlists.any { playlist ->
+            playlistDbConvertor.parseJson(playlist.listIdTracks).contains(trackId.toInt())
+        }
+        if (!isTrackInAnyPlaylist) {
+            trackAddedToAnyPlaylistDatabase.trackAddedToAnyPlaylistDao().deleteTrackEntity(trackId)
+        }
     }
 
     private fun convertFromPlaylistEntity(playlists: List<PlaylistEntity>): List<PlaylistDto> {

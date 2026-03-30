@@ -26,14 +26,14 @@ class MyFavoriteTracksFragment : Fragment() {
     private val myFavoriteTracksViewModel: MyFavoriteTracksViewModel by viewModel()
     private var _binding: FragmentMyFavoriteTracksBinding? = null
     private val binding get() = _binding!!
-    private val favoriteTracksAdapter = TracksAdapter { track ->
+    private val favoriteTracksAdapter = TracksAdapter(clickListener = { track ->
         if (clickDebounce()) {
 
             findNavController().navigate(R.id.action_mediaFragment_to_playerFragment,
                 PlayerFragment.createArgs(track))
 
         }
-    }
+    }, longClickListener = {})
     private var isClickAllowed = true
 
     override fun onCreate(savedInstanceState: Bundle?) {

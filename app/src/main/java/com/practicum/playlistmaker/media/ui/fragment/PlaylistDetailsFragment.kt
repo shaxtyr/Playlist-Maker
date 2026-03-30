@@ -13,15 +13,18 @@ import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.practicum.playlistmaker.databinding.FragmentPlaylistDetailsBinding
 import com.practicum.playlistmaker.media.domain.entity.Playlist
 import com.practicum.playlistmaker.media.ui.viewModel.PlaylistDetailsViewModel
+import com.practicum.playlistmaker.player.ui.PlayerFragment
 import com.practicum.playlistmaker.search.domain.entity.Track
+import com.practicum.playlistmaker.search.ui.TracksAdapter
 import org.koin.android.ext.android.getKoin
 import org.koin.core.parameter.parametersOf
-import java.io.File
 import java.util.Locale
 
 class PlaylistDetailsFragment : Fragment() {
@@ -29,8 +32,18 @@ class PlaylistDetailsFragment : Fragment() {
     private var _binding: FragmentPlaylistDetailsBinding? = null
     private val binding get() = _binding!!
     private var playlistId: Long = 0
-
     private lateinit var viewModel: PlaylistDetailsViewModel
+
+    lateinit var confirmDialog: MaterialAlertDialogBuilder
+
+    private val playlistDetailsAdapter = TracksAdapter(
+
+        clickListener = { track ->
+            findNavController().navigate(R.id.action_playlistDetailsFragment_to_playerFragment,
+            PlayerFragment.createArgs(track)) },
+
+        longClickListener = { track -> showDialog(track.trackId) }
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,6 +56,9 @@ class PlaylistDetailsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.recyclerViewPlaylistDetails.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerViewPlaylistDetails.adapter = playlistDetailsAdapter
 
         val bottomSheetBehavior = BottomSheetBehavior.from(binding.playlistDetailsBottomSheet).apply {
             state = BottomSheetBehavior.STATE_HIDDEN
@@ -67,6 +83,17 @@ class PlaylistDetailsFragment : Fragment() {
                 findNavController().navigateUp()
             }
         })
+
+    }
+
+    fun showDialog(trackId: Long) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.remove_track))
+            .setNegativeButton(getString(R.string.no)) { dialog, which ->
+                // ничего не делаем
+            }.setPositiveButton(getString(R.string.yes)) { dialog, which ->
+                viewModel.removeTrackFromPlaylist(trackId)
+            }.show()
     }
 
     private fun getPlaylistDetails() {
@@ -95,6 +122,13 @@ class PlaylistDetailsFragment : Fragment() {
 
             tracksTime.text = getPluralsMinutes(totalTimeMinutes.toLong())
             tracksNumber.text = getPluralsTracks(playlist.numberOfTracks.toLong())
+
+            updateTracksPeekHeight()
+
+            recyclerViewPlaylistDetails.isVisible = true
+            playlistDetailsAdapter.tracks.clear()
+            playlistDetailsAdapter.tracks.addAll(tracks)
+            playlistDetailsAdapter.notifyDataSetChanged()
         }
     }
 
@@ -111,6 +145,18 @@ class PlaylistDetailsFragment : Fragment() {
     }
     private fun getPluralsTracks(count: Long): String {
         return requireContext().resources.getQuantityString(R.plurals.track_count, count.toInt(), count)
+    }
+
+    private fun updateTracksPeekHeight() {
+        binding.actions.post {
+            if (_binding == null) return@post
+            val tracksBehavior = BottomSheetBehavior.from(binding.playlistDetailsBottomSheet)
+            val screenHeight = binding.root.height
+            val location = IntArray(2)
+            binding.actions.getLocationInWindow(location)
+            val shareButtonBottomInWindow = location[1] + binding.actions.height
+            tracksBehavior.peekHeight = screenHeight - shareButtonBottomInWindow - 16
+        }
     }
 
 
