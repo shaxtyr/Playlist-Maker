@@ -6,7 +6,7 @@ import com.practicum.playlistmaker.media.domain.entity.Playlist
 import com.practicum.playlistmaker.media.domain.interactor.PlaylistInteractor
 import kotlinx.coroutines.launch
 
-class CreatingPlaylistFragmentViewModel(
+open class CreatingPlaylistFragmentViewModel(
     private val playlistInteractor: PlaylistInteractor
 ) : ViewModel() {
 

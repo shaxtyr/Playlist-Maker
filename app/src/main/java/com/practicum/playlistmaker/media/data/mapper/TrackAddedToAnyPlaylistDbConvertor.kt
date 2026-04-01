@@ -1,12 +1,27 @@
 package com.practicum.playlistmaker.media.data.mapper
 
 import com.practicum.playlistmaker.media.data.db.TrackAddedToAnyPlaylistEntity
+import com.practicum.playlistmaker.media.data.dto.TrackAddedToAnyPlaylistDto
 import com.practicum.playlistmaker.search.domain.entity.Track
 
 class TrackAddedToAnyPlaylistDbConvertor {
 
-    fun map(track: Track): TrackAddedToAnyPlaylistEntity {
-        return TrackAddedToAnyPlaylistEntity(
+    fun toDomain(trackAddedToAnyPlaylistDto: TrackAddedToAnyPlaylistDto): Track {
+        return Track(
+            trackAddedToAnyPlaylistDto.previewUrl,
+            trackAddedToAnyPlaylistDto.collectionName,
+            trackAddedToAnyPlaylistDto.releaseDate,
+            trackAddedToAnyPlaylistDto.primaryGenreName,
+            trackAddedToAnyPlaylistDto.country,
+            trackAddedToAnyPlaylistDto.trackId,
+            trackAddedToAnyPlaylistDto.trackName,
+            trackAddedToAnyPlaylistDto.artistName,
+            trackAddedToAnyPlaylistDto.trackTime,
+            trackAddedToAnyPlaylistDto.artworkUrl100)
+    }
+
+    fun toData(track: Track): TrackAddedToAnyPlaylistDto {
+        return TrackAddedToAnyPlaylistDto(
             track.trackId,
             track.artworkUrl100,
             track.trackName,
@@ -19,18 +34,32 @@ class TrackAddedToAnyPlaylistDbConvertor {
             track.previewUrl)
     }
 
-    fun map(track: TrackAddedToAnyPlaylistEntity): Track {
-        return Track(
-            track.previewUrl,
-            track.collectionName,
-            track.releaseDate,
-            track.primaryGenreName,
-            track.country,
-            track.trackId,
-            track.trackName,
-            track.artistName,
-            track.trackTime,
-            track.artworkUrl100)
+    fun map(trackAddedToAnyPlaylistDto: TrackAddedToAnyPlaylistDto): TrackAddedToAnyPlaylistEntity {
+        return TrackAddedToAnyPlaylistEntity(
+            trackAddedToAnyPlaylistDto.trackId,
+            trackAddedToAnyPlaylistDto.artworkUrl100,
+            trackAddedToAnyPlaylistDto.trackName,
+            trackAddedToAnyPlaylistDto.artistName,
+            trackAddedToAnyPlaylistDto.collectionName,
+            trackAddedToAnyPlaylistDto.releaseDate,
+            trackAddedToAnyPlaylistDto.primaryGenreName,
+            trackAddedToAnyPlaylistDto.country,
+            trackAddedToAnyPlaylistDto.trackTime,
+            trackAddedToAnyPlaylistDto.previewUrl)
+    }
+
+    fun map(trackAddedToAnyPlaylistEntity: TrackAddedToAnyPlaylistEntity): TrackAddedToAnyPlaylistDto {
+        return TrackAddedToAnyPlaylistDto(
+            trackAddedToAnyPlaylistEntity.trackId,
+            trackAddedToAnyPlaylistEntity.artworkUrl100,
+            trackAddedToAnyPlaylistEntity.trackName,
+            trackAddedToAnyPlaylistEntity.artistName,
+            trackAddedToAnyPlaylistEntity.collectionName,
+            trackAddedToAnyPlaylistEntity.releaseDate,
+            trackAddedToAnyPlaylistEntity.primaryGenreName,
+            trackAddedToAnyPlaylistEntity.country,
+            trackAddedToAnyPlaylistEntity.trackTime,
+            trackAddedToAnyPlaylistEntity.previewUrl)
     }
 
 }

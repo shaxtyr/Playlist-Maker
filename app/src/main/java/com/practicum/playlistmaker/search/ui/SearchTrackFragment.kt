@@ -33,7 +33,7 @@ class SearchTrackFragment : Fragment() {
     private var isClickAllowed = true
     private val viewModel by viewModel<SearchTrackViewModel>()
 
-    private val tracksAdapter = TracksAdapter { track ->
+    private val tracksAdapter = TracksAdapter(clickListener = { track ->
         if (clickDebounce()) {
 
             addTrackToHistory(track)
@@ -41,16 +41,16 @@ class SearchTrackFragment : Fragment() {
                 PlayerFragment.createArgs(track))
 
         }
-    }
+    }, longClickListener = {})
 
-    private val tracksHistoryAdapter = TracksAdapter { track ->
+    private val tracksHistoryAdapter = TracksAdapter(clickListener = { track ->
         if (clickDebounce()) {
 
             findNavController().navigate(R.id.action_searchTrackFragment_to_playerFragment,
                 PlayerFragment.createArgs(track))
 
         }
-    }
+    }, longClickListener = {})
 
     override fun onCreateView(
         inflater: LayoutInflater,

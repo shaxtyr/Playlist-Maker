@@ -35,6 +35,8 @@ class PlaylistPlayerViewHolder(private val binding: ItemPlaylistPlayerBinding): 
 
     //fun getPlurals(number: Int, context: Context) = context.resources.getQuantityString(R.plurals.track_count, number, number)
 
+
+
     fun tracksWord(numbers: Int): String {
         val lastDigit = numbers.toString().last().digitToInt()
         return if (numbers in 10..20) {

@@ -18,6 +18,10 @@ class SharingInteractorImpl(private val externalNavigator: ExternalNavigator, pr
         externalNavigator.openEmail(getSupportEmailData())
     }
 
+    override fun sharePlaylist(message: String) {
+        externalNavigator.sharePlaylist(message)
+    }
+
     private fun getShareAppLink(): String {
        return resourceProvider.getString(R.string.android_developer_link)
     }
