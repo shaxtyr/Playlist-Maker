@@ -5,6 +5,7 @@ import com.practicum.playlistmaker.R
 import android.icu.text.SimpleDateFormat
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -39,8 +40,6 @@ class PlaylistDetailsFragment : Fragment() {
     private var messageForShare = ""
     private lateinit var viewModel: PlaylistDetailsViewModel
 
-    lateinit var confirmDialog: MaterialAlertDialogBuilder
-
     private val playlistDetailsAdapter = TracksAdapter(
 
         clickListener = { track ->
@@ -65,7 +64,7 @@ class PlaylistDetailsFragment : Fragment() {
         binding.recyclerViewPlaylistDetails.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerViewPlaylistDetails.adapter = playlistDetailsAdapter
 
-        val bottomSheetBehavior = BottomSheetBehavior.from(binding.playlistDetailsBottomSheet).apply {
+        val playlistDetailsBottomSheet = BottomSheetBehavior.from(binding.playlistDetailsBottomSheet).apply {
             state = BottomSheetBehavior.STATE_HIDDEN
         }
 
@@ -84,6 +83,7 @@ class PlaylistDetailsFragment : Fragment() {
         }
 
         binding.shareTracks.setOnClickListener {
+            actionBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
             if (messageForShare.isEmpty()) {
                 Toast.makeText(requireContext(), getString(R.string.empty_list_message), Toast.LENGTH_LONG).show()
             } else {
@@ -92,11 +92,18 @@ class PlaylistDetailsFragment : Fragment() {
         }
 
         binding.actionShare.setOnClickListener {
+            actionBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
             if (messageForShare.isEmpty()) {
                 Toast.makeText(requireContext(), getString(R.string.empty_list_message), Toast.LENGTH_LONG).show()
             } else {
                 viewModel.shareMyPlaylist(messageForShare)
             }
+        }
+
+        binding.actionEdit.setOnClickListener {
+            findNavController().navigate(
+                R.id.action_playlistDetailsFragment_to_editingPlaylistFragment,
+                EditingPlaylistFragment.createArgs(playlistId))
         }
 
         binding.actionDelete.setOnClickListener {
@@ -125,10 +132,10 @@ class PlaylistDetailsFragment : Fragment() {
 
                 when (newState) {
                     BottomSheetBehavior.STATE_HIDDEN -> {
-                        binding.overlay.visibility = View.GONE
+                        binding.overlay.isVisible = false
                     }
                     else -> {
-                        binding.overlay.visibility = View.VISIBLE
+                        binding.overlay.isVisible = true
                     }
                 }
             }
@@ -141,7 +148,7 @@ class PlaylistDetailsFragment : Fragment() {
     }
 
     fun showDialogRemoveTrack(trackId: Long) {
-        MaterialAlertDialogBuilder(requireContext())
+        MaterialAlertDialogBuilder(requireContext(), R.style.Theme_AppCompat_Light_Dialog)
             .setTitle(getString(R.string.remove_track))
             .setNegativeButton(getString(R.string.no)) { dialog, which ->
                 // ничего не делаем
@@ -150,7 +157,7 @@ class PlaylistDetailsFragment : Fragment() {
             }.show()
     }
     fun showDialogRemovePlaylist() {
-        MaterialAlertDialogBuilder(requireContext())
+        MaterialAlertDialogBuilder(requireContext(), R.style.Theme_AppCompat_Light_Dialog)
             .setTitle(getString(R.string.remove_playlist))
             .setNegativeButton(getString(R.string.no)) { dialog, which ->
                 // ничего не делаем

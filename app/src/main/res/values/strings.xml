@@ -80,4 +80,8 @@
     <string name="edit_playlist">"Редактировать информацию</string>
     <string name="delete_playlist">"Удалить плейлист</string>
 
+    <string name="save">"Сохранить</string>
+    <string name="edit">"Редактировать</string>
+
+
 </resources>

@@ -70,14 +70,6 @@ class PlaylistRepositoryImpl(
         playlistDatabase.playlistDao().updatePlaylist(playlistDbConvertor.map(playlistDbConvertor.toData(updatedPlaylist)))
 
         removeUnusedTrack(trackId)
-
-        /*val playlists = playlistDatabase.playlistDao().getPlaylists()
-        val isTrackInAnyPlaylist = playlists.any { playlist ->
-            playlistDbConvertor.parseJson(playlist.listIdTracks).contains(trackId.toInt())
-        }
-        if (!isTrackInAnyPlaylist) {
-            trackAddedToAnyPlaylistDatabase.trackAddedToAnyPlaylistDao().deleteTrackEntity(trackId)
-        }*/
     }
 
     override suspend fun removePlaylist(playlist: Playlist) {

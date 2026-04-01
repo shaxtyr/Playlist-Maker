@@ -16,7 +16,7 @@ interface PlaylistDao {
     @Update(entity = PlaylistEntity::class, onConflict = OnConflictStrategy.REPLACE)
     suspend fun updatePlaylist(playlistEntity: PlaylistEntity)
 
-    @Query("SELECT * FROM playlist_table ORDER BY timestamp DESC")
+    @Query("SELECT * FROM playlist_table")
     suspend fun getPlaylists(): List<PlaylistEntity>
 
     @Query("SELECT * FROM playlist_table WHERE playlistId = :playlistId")

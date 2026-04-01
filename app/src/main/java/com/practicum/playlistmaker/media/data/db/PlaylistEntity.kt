@@ -8,9 +8,8 @@ data class PlaylistEntity(
     @PrimaryKey(autoGenerate = true)
     val playlistId: Long = 0,
     val playlistName: String,
-    val playlistDescription: String?,
-    val imagePath: String?,
+    val playlistDescription: String,
+    val imagePath: String,
     val listIdTracks: String = "",
     val numberOfTracks: Int,
-    val timestamp: Long = System.currentTimeMillis()
 )

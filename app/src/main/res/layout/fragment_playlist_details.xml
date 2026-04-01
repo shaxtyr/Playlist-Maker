@@ -26,6 +26,17 @@
             android:orientation="vertical"
             app:layout_constraintGuide_end="16dp" />
 
+        <ImageView
+            android:id="@id/playlistCover"
+            android:layout_width="360dp"
+            android:layout_height="360dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_gravity="center_horizontal"
+            tools:src="@drawable/placeholder_312"
+            android:scaleType="center"/>
+
         <ImageButton
             android:id="@+id/backToMedia"
             style="@style/BackStyleSettingsScreen"
@@ -37,18 +48,6 @@
             android:layout_marginStart="@dimen/margin_16"
             android:background="@null"
             app:srcCompat="@drawable/ic_arrow_back_24" />
-
-        <ImageView
-            android:id="@id/playlistCover"
-            android:layout_width="360dp"
-            android:layout_height="360dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_gravity="center_horizontal"
-            tools:src="@drawable/placeholder_312"
-            android:visibility="visible"
-            android:scaleType="center"/>
 
         <TextView
             android:id="@+id/playlistName"
