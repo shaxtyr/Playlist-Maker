@@ -22,7 +22,9 @@ class EditingPlaylistFragment : CreatingPlaylistFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        playlistId = requireArguments().get(PLAYLIST_ID) as Long
+        if (arguments?.containsKey(PLAYLIST_ID) == true) {
+            playlistId = requireArguments().getLong(PLAYLIST_ID)
+        }
 
         creatingPlaylistFragmentViewModel.getPlaylistById(playlistId)
 
@@ -51,10 +53,7 @@ class EditingPlaylistFragment : CreatingPlaylistFragment() {
             .into(binding.pickerImagePlaylist);
 
         binding.editPlaylistName.setText(playlist.playlistName)
-        binding.editPlaylistName.isActivated = playlist.playlistName.isNotBlank()
-
         binding.editPlaylistDescription.setText(playlist.playlistDescription)
-        binding.editPlaylistDescription.isActivated = playlist.playlistDescription.isNotBlank() == true
     }
 
     override fun back() {

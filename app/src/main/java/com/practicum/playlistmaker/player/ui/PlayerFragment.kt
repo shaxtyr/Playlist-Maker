@@ -82,8 +82,8 @@ class PlayerFragment : Fragment(){
             }
 
             when(it.stateMode) {
-                EnumStateMode.PLAYING -> binding.playButton.setImageResource(R.drawable.ic_pause_100)
-                else -> binding.playButton.setImageResource(R.drawable.ic_play_100)
+                EnumStateMode.PLAYING ->  binding.playButton.switchPlayButton(true)
+                else -> binding.playButton.switchPlayButton(false)
             }
 
             binding.progressBarAudioPlayer.text = it.progressTime

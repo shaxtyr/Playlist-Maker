@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <declare-styleable name="CustomPlayback">
+
+        <attr name="imageResPlayId"
+            format="reference" />
+
+        <attr name="imageResPauseId"
+            format="reference" />
+
+    </declare-styleable>
+
+</resources>

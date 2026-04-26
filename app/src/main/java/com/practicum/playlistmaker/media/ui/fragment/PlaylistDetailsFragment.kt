@@ -3,23 +3,18 @@ package com.practicum.playlistmaker.media.ui.fragment
 import android.graphics.BitmapFactory
 import com.practicum.playlistmaker.R
 import android.icu.text.SimpleDateFormat
-import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.core.net.toUri
 import androidx.core.os.bundleOf
-import androidx.core.view.doOnAttach
 import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.practicum.playlistmaker.databinding.FragmentPlaylistDetailsBinding
@@ -148,24 +143,45 @@ class PlaylistDetailsFragment : Fragment() {
     }
 
     fun showDialogRemoveTrack(trackId: Long) {
-        MaterialAlertDialogBuilder(requireContext(), R.style.Theme_AppCompat_Light_Dialog)
-            .setTitle(getString(R.string.remove_track))
-            .setNegativeButton(getString(R.string.no)) { dialog, which ->
-                // ничего не делаем
-            }.setPositiveButton(getString(R.string.yes)) { dialog, which ->
-                viewModel.removeTrackFromPlaylist(trackId)
-            }.show()
+
+        showConfirmDialog(
+            R.string.remove_track,
+            R.string.yes,
+            R.string.no,
+            { viewModel.removeTrackFromPlaylist(trackId) },
+            {  } )
+
     }
     fun showDialogRemovePlaylist() {
-        MaterialAlertDialogBuilder(requireContext(), R.style.Theme_AppCompat_Light_Dialog)
-            .setTitle(getString(R.string.remove_playlist))
-            .setNegativeButton(getString(R.string.no)) { dialog, which ->
-                // ничего не делаем
-            }.setPositiveButton(getString(R.string.yes)) { dialog, which ->
+
+        showConfirmDialog(
+            R.string.remove_playlist,
+            R.string.yes,
+            R.string.no,
+            {
                 viewModel.removePlaylist()
                 findNavController().navigateUp()
+            },
+            {  } )
 
-            }.show()
+    }
+
+    private fun showConfirmDialog(
+        titleResId: Int,
+        positiveButtonTextResId: Int,
+        negativeButtonTextResId: Int,
+        onPositiveClick: () -> Unit,
+        onNegativeClick: () -> Unit
+    ) {
+        MaterialAlertDialogBuilder(requireContext(), R.style.Theme_AppCompat_Light_Dialog)
+            .setTitle(getString(titleResId))
+            .setNegativeButton(getString(negativeButtonTextResId)) { dialog, which ->
+                onNegativeClick()
+            }
+            .setPositiveButton(getString(positiveButtonTextResId)) { dialog, which ->
+                onPositiveClick()
+            }
+            .show()
     }
 
     private fun getPlaylistDetails() {
