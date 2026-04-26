@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.practicum.playlistmaker.media.domain.interactor.PlaylistInteractor
 import androidx.lifecycle.viewModelScope
+import com.practicum.playlistmaker.media.domain.entity.Playlist
 import com.practicum.playlistmaker.media.ui.TracksAddedToCurrentPlaylistState
 import com.practicum.playlistmaker.search.domain.entity.Track
 import com.practicum.playlistmaker.sharing.domain.interactor.SharingInteractor
@@ -42,8 +43,10 @@ class PlaylistDetailsViewModel(
         viewModelScope.launch {
             playlistInteractor.removeTrackFromPlaylist(trackId, currentPlaylist)
 
-            playlistInteractor.getTracksFromPlaylist(currentPlaylist.listIdTracks).collect {tracks ->
-                tracksAddedToCurrentPlaylist = tracks.toMutableList()
+            playlistInteractor
+                .getTracksFromPlaylist(currentPlaylist.listIdTracks)
+                .collect {tracks ->
+                    tracksAddedToCurrentPlaylist = tracks.toMutableList()
             }
 
             tracksAddedToCurrentPlaylistStateLiveData.postValue(TracksAddedToCurrentPlaylistState (
@@ -51,6 +54,7 @@ class PlaylistDetailsViewModel(
                 tracksAddedToCurrentPlaylist))
         }
     }
+
 
     fun removePlaylist() {
         val currentPlaylist = tracksAddedToCurrentPlaylistStateLiveData.value!!.playlist
