@@ -1,10 +1,12 @@
 package com.practicum.playlistmaker.player.ui
 
+import android.content.IntentFilter
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -16,11 +18,13 @@ import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.databinding.FragmentPlayerBinding
 import com.practicum.playlistmaker.media.domain.entity.Playlist
 import com.practicum.playlistmaker.search.domain.entity.Track
+import com.practicum.playlistmaker.utils.WithoutNetworkBroadcastReceiver
 import org.koin.android.ext.android.getKoin
 import org.koin.core.parameter.parametersOf
 
 class PlayerFragment : Fragment(){
 
+    private lateinit var withoutNetworkBroadcastReceiver: WithoutNetworkBroadcastReceiver
     private var _binding: FragmentPlayerBinding? = null
     private val binding get() = _binding!!
 
@@ -42,6 +46,8 @@ class PlayerFragment : Fragment(){
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        withoutNetworkBroadcastReceiver = WithoutNetworkBroadcastReceiver(requireContext())
 
         val bottomSheetBehavior = BottomSheetBehavior.from(binding.playlistsBottomSheet).apply {
             state = BottomSheetBehavior.STATE_HIDDEN
@@ -147,6 +153,16 @@ class PlayerFragment : Fragment(){
 
     }
 
+    override fun onResume() {
+        super.onResume()
+        ContextCompat.registerReceiver(
+            requireContext(),
+            withoutNetworkBroadcastReceiver,
+            IntentFilter(ACTION),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -179,6 +195,7 @@ class PlayerFragment : Fragment(){
     override fun onPause() {
         super.onPause()
         viewModel.pausePlayer()
+        requireContext().unregisterReceiver(withoutNetworkBroadcastReceiver)
     }
 
     fun showPlaylistsContent(playlists: List<Playlist>) {
@@ -191,6 +208,7 @@ class PlayerFragment : Fragment(){
 
     companion object {
         private const val OPEN_TRACK_KEY = "open_track"
+        const val ACTION = "android.net.conn.CONNECTIVITY_CHANGE"
 
         fun createArgs(track: Track): Bundle =
             bundleOf(OPEN_TRACK_KEY to track)

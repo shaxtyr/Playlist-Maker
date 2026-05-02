@@ -1,6 +1,7 @@
 package com.practicum.playlistmaker.search.ui
 
 import android.content.Context.INPUT_METHOD_SERVICE
+import android.content.IntentFilter
 import android.os.Bundle
 import android.text.Editable
 import android.view.LayoutInflater
@@ -8,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
@@ -18,6 +20,7 @@ import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.databinding.FragmentSearchBinding
 import com.practicum.playlistmaker.player.ui.PlayerFragment
 import com.practicum.playlistmaker.search.domain.entity.Track
+import com.practicum.playlistmaker.utils.WithoutNetworkBroadcastReceiver
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -25,6 +28,7 @@ import kotlin.getValue
 
 class SearchTrackFragment : Fragment() {
 
+    private lateinit var withoutNetworkBroadcastReceiver: WithoutNetworkBroadcastReceiver
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
     private var currentText = ""
@@ -64,6 +68,8 @@ class SearchTrackFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
+        withoutNetworkBroadcastReceiver = WithoutNetworkBroadcastReceiver(requireContext())
 
         communicationProblemMessage = getString(R.string.communication_problems)
         emptyListMessage = getString(R.string.nothing_found)
@@ -132,6 +138,21 @@ class SearchTrackFragment : Fragment() {
             viewModel.search(binding.inputEditTextSearch.text.toString(), communicationProblemMessage, emptyListMessage)
         }
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+        ContextCompat.registerReceiver(
+            requireContext(),
+            withoutNetworkBroadcastReceiver,
+            IntentFilter(ACTION),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        requireContext().unregisterReceiver(withoutNetworkBroadcastReceiver)
     }
 
     override fun onDestroyView() {
@@ -231,5 +252,6 @@ class SearchTrackFragment : Fragment() {
 
     companion object {
         const val CLICK_DEBOUNCE_DELAY = 1000L
+        const val ACTION = "android.net.conn.CONNECTIVITY_CHANGE"
     }
 }
