@@ -1,11 +1,23 @@
 package com.practicum.playlistmaker.player.ui
 
+import android.Manifest
+import android.app.Activity
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
 import android.content.IntentFilter
+import android.content.ServiceConnection
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -18,6 +30,7 @@ import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.databinding.FragmentPlayerBinding
 import com.practicum.playlistmaker.media.domain.entity.Playlist
 import com.practicum.playlistmaker.search.domain.entity.Track
+import com.practicum.playlistmaker.services.MusicService
 import com.practicum.playlistmaker.utils.WithoutNetworkBroadcastReceiver
 import org.koin.android.ext.android.getKoin
 import org.koin.core.parameter.parametersOf
@@ -29,12 +42,45 @@ class PlayerFragment : Fragment(){
     private val binding get() = _binding!!
 
     private lateinit var viewModel: PlayerViewModel
+    //private var pendingAction: (() -> Unit)? = null
     private lateinit var openTrack: Track
 
     private val playlistsAdapter = PlaylistPlayerAdapter { playlist ->
         viewModel.checkTrackIdInPlaylist(playlist)
     }
 
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(
+            name: ComponentName?,
+            service: IBinder?
+        ) {
+            val binder = service as MusicService.MusicServiceBinder
+            viewModel.setPlayerControl(binder.getService())
+
+            //pendingAction?.invoke()
+            //pendingAction = null
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            viewModel.removePlayerControl()
+        }
+    }
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Если выдали разрешение — запускаем сервис.
+            startForegroundService()
+            //bindMusicService()
+            //viewModel.playbackControl()
+        } else {
+            // Иначе просто покажем ошибку
+            Toast.makeText(requireContext(), "Can't start foreground service!", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    //region onCreateView
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -43,7 +89,9 @@ class PlayerFragment : Fragment(){
         _binding = FragmentPlayerBinding.inflate(inflater, container, false)
         return binding.root
     }
+    //endregion
 
+    //region onViewCreated
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -98,11 +146,32 @@ class PlayerFragment : Fragment(){
         }
         setOtherInfoFromTrack()
 
+        bindMusicService()
+
         binding.recyclerViewPlaylistBottom.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerViewPlaylistBottom.adapter = playlistsAdapter
 
         binding.playButton.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(
+                        requireContext(),
+                        Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED) {
+                    // Разрешение уже есть
+                    startForegroundService()
+                    //bindMusicService()
+                    //viewModel.playbackControl()
+                } else {
+                    // Разрешения нет — запроси
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            } else {
+                // Для старых версий ничего не запрашиваем
+                startForegroundService()
+
+            }
             viewModel.playbackControl()
+
         }
 
         binding.likeButton.setOnClickListener {
@@ -129,7 +198,11 @@ class PlayerFragment : Fragment(){
         }
 
         binding.backFromAudioPlayer.setOnClickListener {
+
+            requireContext().stopService(Intent(context, MusicService::class.java))
+            unbindMusicService()
             findNavController().navigateUp()
+
         }
 
         bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
@@ -152,7 +225,9 @@ class PlayerFragment : Fragment(){
         })
 
     }
+    //endregion
 
+    //region onResume
     override fun onResume() {
         super.onResume()
         ContextCompat.registerReceiver(
@@ -161,11 +236,60 @@ class PlayerFragment : Fragment(){
             IntentFilter(ACTION),
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
+        viewModel.hideNotify()
     }
+    //endregion
 
+    //region onPause
+    override fun onPause() {
+        super.onPause()
+        //viewModel.pausePlayer()
+        if (viewModel.observePlayerState().value?.stateMode == EnumStateMode.PAUSED) {
+            viewModel.hideNotify()
+        } else {
+            viewModel.showNotify()
+        }
+
+        requireContext().unregisterReceiver(withoutNetworkBroadcastReceiver)
+    }
+    //endregion
+
+    //region onDestroyView
     override fun onDestroyView() {
+        unbindMusicService()
         super.onDestroyView()
         _binding = null
+    }
+    //endregion
+
+    private fun bindMusicService() {
+        val intent = Intent(requireContext(), MusicService::class.java).apply {
+            putExtra(SONG_URL_KEY, openTrack.previewUrl)
+            putExtra(TRACK_NAME_KEY, openTrack.trackName)
+            putExtra(ARTIST_NAME_KEY, openTrack.artistName)
+        }
+
+
+        requireContext().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+        //ContextCompat.startForegroundService(requireContext(), intent)
+
+        //viewModel.playbackControl()
+    }
+
+    private fun startForegroundService() {
+        val intent = Intent(requireContext(), MusicService::class.java).apply {
+            putExtra(SONG_URL_KEY, openTrack.previewUrl)
+            putExtra(TRACK_NAME_KEY, openTrack.trackName)
+            putExtra(ARTIST_NAME_KEY, openTrack.artistName)
+        }
+
+
+        //requireContext().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+        ContextCompat.startForegroundService(requireContext(), intent)
+    }
+
+    private fun unbindMusicService() {
+        requireContext().unbindService(serviceConnection)
     }
 
     private fun setOtherInfoFromTrack() {
@@ -192,12 +316,6 @@ class PlayerFragment : Fragment(){
         binding.countryValueAudioPlayer.text = openTrack.country
     }
 
-    override fun onPause() {
-        super.onPause()
-        viewModel.pausePlayer()
-        requireContext().unregisterReceiver(withoutNetworkBroadcastReceiver)
-    }
-
     fun showPlaylistsContent(playlists: List<Playlist>) {
         binding.recyclerViewPlaylistBottom.isVisible = true
 
@@ -208,6 +326,9 @@ class PlayerFragment : Fragment(){
 
     companion object {
         private const val OPEN_TRACK_KEY = "open_track"
+        private const val SONG_URL_KEY = "song_url"
+        private const val TRACK_NAME_KEY = "track_name"
+        private const val ARTIST_NAME_KEY = "artist_name"
         const val ACTION = "android.net.conn.CONNECTIVITY_CHANGE"
 
         fun createArgs(track: Track): Bundle =
