@@ -1,7 +1,6 @@
 package com.practicum.playlistmaker.player.ui
 
 import android.media.MediaPlayer
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -10,9 +9,6 @@ import com.practicum.playlistmaker.media.domain.entity.Playlist
 import com.practicum.playlistmaker.media.domain.interactor.FavoriteTracksInteractor
 import com.practicum.playlistmaker.media.domain.interactor.PlaylistInteractor
 import com.practicum.playlistmaker.search.domain.entity.Track
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class PlayerViewModel(
@@ -23,40 +19,33 @@ class PlayerViewModel(
 ) : ViewModel() {
 
     private var currentPlaylists: List<Playlist> = mutableListOf()
+
     private var playerControl: PlayerControl? = null
-    //private var timerJob: Job? = null
 
-    private data class LocalState(
-        val isFavorite: Boolean = false,
-        val playlists: List<Playlist> = emptyList(),
-        val addedTrackToPlaylistState: AddedTrackToPlaylistState? = null
-    )
-
-    private val _localState = MutableStateFlow(LocalState())
-
-    private val playerStateLiveData = MutableLiveData<PlayerState>(PlayerState(
-        EnumStateMode.DEFAULT,
-        "00:00",
-        false,
-        currentPlaylists,
-        null))
+    private val playerStateLiveData = MutableLiveData<PlayerState>(PlayerState.Default())
     fun observePlayerState(): LiveData<PlayerState> = playerStateLiveData
+
+    private val isFavoriteLiveData = MutableLiveData<Boolean>(false)
+    fun observeIsFavoriteLiveData(): LiveData<Boolean> = isFavoriteLiveData
+
+    private val currentPlaylistsLiveData = MutableLiveData<List<Playlist>>(emptyList())
+    fun observeCurrentPlaylistsLiveData(): LiveData<List<Playlist>> = currentPlaylistsLiveData
+
+    private val addedTrackToPlaylistStateLiveData = MutableLiveData<AddedTrackToPlaylistState>(null)
+    fun observeAddedTrackToPlaylistState(): LiveData<AddedTrackToPlaylistState> = addedTrackToPlaylistStateLiveData
+
+
+    init {
+        getPlaylists()
+        isFavoriteLiveData.value = track.isFavorite
+    }
 
     fun setPlayerControl(playerControl: PlayerControl) {
         this.playerControl = playerControl
 
         viewModelScope.launch {
-            combine(
-                playerControl.getPlayerStateFlow(),
-                _localState
-            ) { serviceState, localState ->
-                serviceState.copy(
-                    isFavorite = localState.isFavorite,
-                    playlists = localState.playlists,
-                    addedTrackToPlaylistState = localState.addedTrackToPlaylistState
-                )
-            }.collect { mergedState ->
-                playerStateLiveData.postValue(mergedState)
+            playerControl.getPlayerStateFlow().collect {
+                playerStateLiveData.postValue(it)
             }
         }
     }
@@ -65,31 +54,16 @@ class PlayerViewModel(
         playerControl = null
     }
 
-
-
-    init {
-        viewModelScope.launch {
-            _localState.update { it.copy(
-                isFavorite = track.isFavorite,
-                playlists = currentPlaylists,
-                addedTrackToPlaylistState = null) }
-        }
-    }
-
     override fun onCleared() {
         super.onCleared()
         playerControl = null
-        //mediaPlayer.release()
     }
 
     fun playbackControl() {
-        when(playerStateLiveData.value?.stateMode) {
-            EnumStateMode.PLAYING -> {
-                playerControl?.pausePlayer()
-            }
-            else -> {
-                playerControl?.startPlayer()
-            }
+        if(playerStateLiveData.value is PlayerState.Playing) {
+            playerControl?.pausePlayer()
+        } else {
+            playerControl?.startPlayer()
         }
     }
 
@@ -100,20 +74,13 @@ class PlayerViewModel(
 
         listIdPlaylist.forEach {
             if (it.toLong() == trackId) {
-
-                _localState.update { it.copy(addedTrackToPlaylistState = AddedTrackToPlaylistState.AlreadyInPlaylist(playlist.playlistName)) }
-
+                addedTrackToPlaylistStateLiveData.postValue(AddedTrackToPlaylistState.AlreadyInPlaylist(playlist.playlistName))
                 return
             }
-
         }
-
         viewModelScope.launch {
-
             playlistInteractor.addToPlaylist(track, playlist)
-
-            _localState.update { it.copy(addedTrackToPlaylistState = AddedTrackToPlaylistState.AddedToPlayList(playlist.playlistName)) }
-
+            addedTrackToPlaylistStateLiveData.postValue(AddedTrackToPlaylistState.AddedToPlayList(playlist.playlistName))
         }
     }
 
@@ -131,7 +98,7 @@ class PlayerViewModel(
                 track.isFavorite = true
             }
 
-            _localState.update { it.copy(isFavorite = track.isFavorite) }
+            isFavoriteLiveData.postValue(track.isFavorite)
 
         }
     }
@@ -144,14 +111,13 @@ class PlayerViewModel(
                     currentPlaylists = playlists
                 }
         }
-
-        _localState.update { it.copy(playlists = currentPlaylists) }
-
+        currentPlaylistsLiveData.postValue(currentPlaylists)
     }
 
     fun showNotify() {
-        playerControl?.showNotification()
-
+        if (playerStateLiveData.value is PlayerState.Playing) {
+            playerControl?.showNotification()
+        }
     }
 
     fun hideNotify() {

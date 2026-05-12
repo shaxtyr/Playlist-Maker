@@ -1,6 +1,5 @@
 package com.practicum.playlistmaker.services
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -13,8 +12,6 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import com.practicum.playlistmaker.R
-import com.practicum.playlistmaker.media.domain.entity.Playlist
-import com.practicum.playlistmaker.player.ui.EnumStateMode
 import com.practicum.playlistmaker.player.ui.PlayerControl
 import com.practicum.playlistmaker.player.ui.PlayerState
 import kotlinx.coroutines.CoroutineScope
@@ -24,10 +21,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 class MusicService : Service(), PlayerControl {
@@ -38,25 +33,12 @@ class MusicService : Service(), PlayerControl {
     private var artistName = ""
     private var timerJob: Job? = null
     private var mediaPlayer: MediaPlayer? = null
-    private var currentPlaylists: List<Playlist> = mutableListOf()
-
-    private val _playerState = MutableStateFlow<PlayerState>(PlayerState(
-        EnumStateMode.DEFAULT,
-        "00:00",
-        false,
-        currentPlaylists,
-        null
-    ))
-
+    private val _playerState = MutableStateFlow<PlayerState>(PlayerState.Default())
     val playerState = _playerState.asStateFlow()
-
-
 
     override fun onCreate() {
         super.onCreate()
-
         createNotificationChannel()
-        mediaPlayer = MediaPlayer()
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -65,12 +47,10 @@ class MusicService : Service(), PlayerControl {
         artistName = intent?.getStringExtra(ARTIST_NAME_KEY) ?: ""
 
         initPlayer()
-
         return binder
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
-        releasePlayer()
         return super.onUnbind(intent)
     }
 
@@ -79,91 +59,38 @@ class MusicService : Service(), PlayerControl {
     }
 
     override fun startPlayer() {
-        //initPlayer()
         mediaPlayer?.start()
-
-        _playerState.update { it.copy(
-            stateMode = EnumStateMode.PLAYING,
-            progressTime = getCurrentPlayerProgress()) }
-
-        /*_playerState.value = PlayerState(
-            EnumStateMode.PLAYING,
-            getCurrentPlayerProgress(),
-            isFavorite,
-            currentPlaylists,
-            null)*/
+        _playerState.value = PlayerState.Playing(getCurrentPlayerProgress())
         startTimer()
     }
 
     override fun pausePlayer() {
         mediaPlayer?.pause()
         timerJob?.cancel()
-
         hideNotification()
-        _playerState.update { it.copy(
-            stateMode = EnumStateMode.PAUSED,
-            progressTime = getCurrentPlayerProgress()) }
-
-        /*_playerState.value = PlayerState(
-            EnumStateMode.PAUSED,
-            getCurrentPlayerProgress(),
-            isFavorite,
-            currentPlaylists,
-            null)*/
+        _playerState.value = PlayerState.Paused(getCurrentPlayerProgress())
     }
-
-    /*fun getCurrentPlayerProgress(): String {
-        return SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer?.currentPosition) ?: "00:00"
-    }*/
 
     fun getCurrentPlayerProgress(): String {
-        val positionMs = mediaPlayer?.currentPosition ?: 0
-        val date = Date(positionMs.toLong())
-        return SimpleDateFormat("mm:ss", Locale.getDefault()).format(date)
+        return SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer?.currentPosition) ?: "00:00"
     }
-
 
     private fun initPlayer() {
         if (songUrl.isEmpty()) return
 
-        mediaPlayer?.reset()
-        mediaPlayer?.setDataSource(songUrl)
-        mediaPlayer?.prepareAsync()
-        mediaPlayer?.setOnPreparedListener {
-
-            _playerState.update { it.copy(
-                stateMode = EnumStateMode.PREPARED,
-                progressTime = getCurrentPlayerProgress()) }
-        }
-        mediaPlayer?.setOnCompletionListener {
-            timerJob?.cancel()
-
-            hideNotification()
-            _playerState.update { it.copy(
-                stateMode = EnumStateMode.PREPARED,
-                progressTime = "00:00") }
-        }
-    }
-
-    private fun releasePlayer() {
-        timerJob?.cancel()
-        mediaPlayer?.stop()
-
-        _playerState.update { it.copy(
-            stateMode = EnumStateMode.DEFAULT,
-            progressTime = getCurrentPlayerProgress()) }
-
-        /*_playerState.value = PlayerState(
-            EnumStateMode.DEFAULT,
-            getCurrentPlayerProgress(),
-            false,
-            currentPlaylists,
-            null)*/
-
-        mediaPlayer?.setOnPreparedListener(null)
-        mediaPlayer?.setOnCompletionListener(null)
         mediaPlayer?.release()
-        mediaPlayer = null
+        mediaPlayer = MediaPlayer().apply {
+            setDataSource(songUrl)
+            setOnPreparedListener {
+                _playerState.value = PlayerState.Prepared()
+            }
+            setOnCompletionListener {
+                timerJob?.cancel()
+                _playerState.value = PlayerState.Prepared()
+                hideNotification()
+            }
+            prepareAsync()
+        }
     }
 
     private fun startTimer() {
@@ -172,16 +99,7 @@ class MusicService : Service(), PlayerControl {
             while (mediaPlayer?.isPlaying == true) {
                 delay(DELAY)
 
-                _playerState.update { it.copy(
-                    stateMode = EnumStateMode.PLAYING,
-                    progressTime = getCurrentPlayerProgress()) }
-
-                /*_playerState.value = PlayerState(
-                    EnumStateMode.PLAYING,
-                    getCurrentPlayerProgress(),
-                    isFavorite,
-                    currentPlaylists,
-                    null)*/
+                _playerState.value = PlayerState.Playing(getCurrentPlayerProgress())
             }
         }
     }
@@ -202,31 +120,25 @@ class MusicService : Service(), PlayerControl {
         notificationManager.createNotificationChannel(channel)
     }
 
-    private fun createServiceNotification(): Notification {
-        return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+    override fun showNotification() {
+        val notification = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(NOTIFICATION_TITLE)
             .setContentText("$trackName - $artistName")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build()
-    }
 
-    private fun getForegroundServiceTypeConstant(): Int {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ServiceCompat.startForeground(
+                this,
+                SERVICE_NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+            )
         } else {
-            0
+            ServiceCompat.startForeground(this, SERVICE_NOTIFICATION_ID, notification, 0)
         }
-    }
-
-    override fun showNotification() {
-        ServiceCompat.startForeground(
-            this,
-            SERVICE_NOTIFICATION_ID,
-            createServiceNotification(),
-            getForegroundServiceTypeConstant()
-        )
     }
 
     override fun hideNotification() {
@@ -235,6 +147,13 @@ class MusicService : Service(), PlayerControl {
 
     inner class MusicServiceBinder : Binder() {
         fun getService(): MusicService = this@MusicService
+    }
+
+    override fun onDestroy() {
+        timerJob?.cancel()
+        mediaPlayer?.release()
+        mediaPlayer = null
+        super.onDestroy()
     }
 
     companion object {
