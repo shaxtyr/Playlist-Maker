@@ -1,11 +1,12 @@
 package com.practicum.playlistmaker.player.ui
 
-import com.practicum.playlistmaker.media.domain.entity.Playlist
+sealed class PlayerState(val buttonState: Boolean, val buttonText: String, val progress: String) {
 
-data class PlayerState(
-    val stateMode: EnumStateMode,
-    val progressTime: String,
-    val isFavorite: Boolean,
-    val playlists: List<Playlist> = emptyList(),
-    val addedTrackToPlaylistState: AddedTrackToPlaylistState? = null
-)
+    class Default : PlayerState(false, "PLAY", "00:00")
+
+    class Prepared : PlayerState(true, "PLAY", "00:00")
+
+    class Playing(progress: String) : PlayerState(true, "PAUSE", progress)
+
+    class Paused(progress: String) : PlayerState(true, "PLAY", progress)
+}

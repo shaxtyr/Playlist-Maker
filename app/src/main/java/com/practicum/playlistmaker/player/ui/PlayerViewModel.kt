@@ -9,11 +9,7 @@ import com.practicum.playlistmaker.media.domain.entity.Playlist
 import com.practicum.playlistmaker.media.domain.interactor.FavoriteTracksInteractor
 import com.practicum.playlistmaker.media.domain.interactor.PlaylistInteractor
 import com.practicum.playlistmaker.search.domain.entity.Track
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 class PlayerViewModel(
     private val track: Track,
@@ -23,97 +19,52 @@ class PlayerViewModel(
 ) : ViewModel() {
 
     private var currentPlaylists: List<Playlist> = mutableListOf()
-    private var timerJob: Job? = null
-    private val playerStateLiveData = MutableLiveData<PlayerState>(PlayerState(
-        EnumStateMode.DEFAULT,
-        getCurrentPlayerProgress(),
-        false,
-        currentPlaylists,
-        null))
+
+    private var playerControl: PlayerControl? = null
+
+    private val playerStateLiveData = MutableLiveData<PlayerState>(PlayerState.Default())
     fun observePlayerState(): LiveData<PlayerState> = playerStateLiveData
 
+    private val isFavoriteLiveData = MutableLiveData<Boolean>(false)
+    fun observeIsFavoriteLiveData(): LiveData<Boolean> = isFavoriteLiveData
+
+    private val currentPlaylistsLiveData = MutableLiveData<List<Playlist>>(emptyList())
+    fun observeCurrentPlaylistsLiveData(): LiveData<List<Playlist>> = currentPlaylistsLiveData
+
+    private val addedTrackToPlaylistStateLiveData = MutableLiveData<AddedTrackToPlaylistState>(null)
+    fun observeAddedTrackToPlaylistState(): LiveData<AddedTrackToPlaylistState> = addedTrackToPlaylistStateLiveData
+
+
     init {
-        preparedPlayer()
+        getPlaylists()
+        isFavoriteLiveData.value = track.isFavorite
     }
 
-    private fun preparedPlayer() {
-        mediaPlayer.reset()
-        mediaPlayer.setDataSource(track.previewUrl)
-        mediaPlayer.prepareAsync()
-        mediaPlayer.setOnPreparedListener {
-            playerStateLiveData.postValue(PlayerState(
-                EnumStateMode.PREPARED,
-                getCurrentPlayerProgress(),
-                track.isFavorite,
-                currentPlaylists,
-                null))
-        }
-        mediaPlayer.setOnCompletionListener {
-            timerJob?.cancel()
-            playerStateLiveData.postValue(PlayerState(
-                EnumStateMode.PREPARED,
-                "00:00",
-                track.isFavorite,
-                currentPlaylists,
-                null))
+    fun setPlayerControl(playerControl: PlayerControl) {
+        this.playerControl = playerControl
+
+        viewModelScope.launch {
+            playerControl.getPlayerStateFlow().collect {
+                playerStateLiveData.postValue(it)
+            }
         }
     }
 
-    private fun startPlayer() {
-        mediaPlayer.start()
-        playerStateLiveData.postValue(PlayerState(
-            EnumStateMode.PLAYING,
-            getCurrentPlayerProgress(),
-            track.isFavorite,
-            currentPlaylists,
-            null))
-        startTimer()
-    }
-
-    fun pausePlayer() {
-        mediaPlayer.pause()
-        timerJob?.cancel()
-        playerStateLiveData.postValue(PlayerState(
-            EnumStateMode.PAUSED,
-            getCurrentPlayerProgress(),
-            track.isFavorite,
-            currentPlaylists,
-            null))
+    fun removePlayerControl() {
+        playerControl = null
     }
 
     override fun onCleared() {
         super.onCleared()
-        mediaPlayer.release()
+        playerControl = null
     }
 
     fun playbackControl() {
-        when(playerStateLiveData.value?.stateMode) {
-            EnumStateMode.PLAYING -> {
-                pausePlayer()
-            }
-            else -> {
-                startPlayer()
-            }
+        if(playerStateLiveData.value is PlayerState.Playing) {
+            playerControl?.pausePlayer()
+        } else {
+            playerControl?.startPlayer()
         }
-    }
-
-    private fun startTimer() {
-        timerJob?.cancel()
-        timerJob = viewModelScope.launch {
-            while (mediaPlayer.isPlaying) {
-                delay(DELAY)
-                playerStateLiveData.postValue(PlayerState(
-                    EnumStateMode.PLAYING,
-                    getCurrentPlayerProgress(),
-                    track.isFavorite,
-                    currentPlaylists,
-                    null))
-            }
-        }
-    }
-
-    private fun getCurrentPlayerProgress(): String {
-        return SimpleDateFormat("mm:ss", Locale.getDefault()).format(mediaPlayer.currentPosition) ?: "00:00"
     }
 
     fun checkTrackIdInPlaylist(playlist: Playlist) {
@@ -123,29 +74,13 @@ class PlayerViewModel(
 
         listIdPlaylist.forEach {
             if (it.toLong() == trackId) {
-                playerStateLiveData.postValue(PlayerState(
-                    playerStateLiveData.value!!.stateMode,
-                    getCurrentPlayerProgress(),
-                    track.isFavorite,
-                    currentPlaylists,
-                    AddedTrackToPlaylistState.AlreadyInPlaylist(playlist.playlistName)))
-
+                addedTrackToPlaylistStateLiveData.postValue(AddedTrackToPlaylistState.AlreadyInPlaylist(playlist.playlistName))
                 return
             }
-
         }
-
         viewModelScope.launch {
-
             playlistInteractor.addToPlaylist(track, playlist)
-
-            playerStateLiveData.postValue(PlayerState(
-                playerStateLiveData.value!!.stateMode,
-                getCurrentPlayerProgress(),
-                track.isFavorite,
-                currentPlaylists,
-                AddedTrackToPlaylistState.AddedToPlayList(playlist.playlistName)))
-
+            addedTrackToPlaylistStateLiveData.postValue(AddedTrackToPlaylistState.AddedToPlayList(playlist.playlistName))
         }
     }
 
@@ -163,16 +98,12 @@ class PlayerViewModel(
                 track.isFavorite = true
             }
 
-            playerStateLiveData.postValue(PlayerState(
-                playerStateLiveData.value!!.stateMode,
-                getCurrentPlayerProgress(),
-                track.isFavorite,
-                currentPlaylists,
-                null))
+            isFavoriteLiveData.postValue(track.isFavorite)
+
         }
     }
 
-    fun getPlaylists(){
+    fun getPlaylists() {
         viewModelScope.launch {
             playlistInteractor
                 .getPlaylists()
@@ -180,18 +111,17 @@ class PlayerViewModel(
                     currentPlaylists = playlists
                 }
         }
-
-        playerStateLiveData.postValue(PlayerState(
-            playerStateLiveData.value!!.stateMode,
-            getCurrentPlayerProgress(),
-            track.isFavorite,
-            currentPlaylists,
-            null))
-
+        currentPlaylistsLiveData.postValue(currentPlaylists)
     }
 
-    companion object {
-        private const val DELAY = 300L
+    fun showNotify() {
+        if (playerStateLiveData.value is PlayerState.Playing) {
+            playerControl?.showNotification()
+        }
+    }
+
+    fun hideNotify() {
+        playerControl?.hideNotification()
     }
 
 }

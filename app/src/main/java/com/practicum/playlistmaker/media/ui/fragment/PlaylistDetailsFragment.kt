@@ -1,6 +1,5 @@
 package com.practicum.playlistmaker.media.ui.fragment
 
-import android.graphics.BitmapFactory
 import com.practicum.playlistmaker.R
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle

@@ -83,5 +83,7 @@
     <string name="save">"Сохранить</string>
     <string name="edit">"Редактировать</string>
 
+    <string name="without_network">Отсутствует подключение к сети</string>
+
 
 </resources>
