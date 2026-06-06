@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -188,7 +189,6 @@ class PlayerFragment : Fragment(){
         }
 
         binding.backFromAudioPlayer.setOnClickListener {
-
             findNavController().navigateUp()
 
         }

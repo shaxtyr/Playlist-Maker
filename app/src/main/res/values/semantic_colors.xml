@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primaryBackground">@color/white</color>
+    <color name="primaryButtonBackground">@color/black</color>
+    <color name="primaryButtonText">@color/white</color>
+    <color name="primaryIcon">@color/gray</color>
+    <color name="primaryText">@color/black</color>
+    <color name="secondaryText">@color/gray</color>
+    <color name="primaryTextFieldBackground">@color/light_gray</color>
+    <color name="primaryTextFieldHint">@color/gray</color>
+    <color name="primaryTextFieldIcon">@color/gray</color>
+    <color name="primaryImage">@color/black</color>
+
+    <color name="primaryTextFieldText">@color/black</color>
+    <color name="primaryTextFieldCursor">@color/blue</color>
+
+</resources>

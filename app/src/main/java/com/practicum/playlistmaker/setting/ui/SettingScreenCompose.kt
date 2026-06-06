@@ -38,16 +38,16 @@ fun SettingScreenCompose(viewModel: SettingsViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(if (themeSettings.isDarkTheme) colorResource(id = R.color.black) else colorResource(id = R.color.white))
+            .background(colorResource(id = R.color.primaryBackground))
     ) {
         TopAppBar(
             title = { Text(
                 text = stringResource(id = R.string.settings),
                 fontSize = dimensionResource(id = R.dimen.medium_font_22).value.sp,
                 fontFamily = FontFamily(Font(R.font.ys_display_medium)),
-                color = if (themeSettings.isDarkTheme) colorResource(id = R.color.white) else colorResource(id = R.color.black)
+                color = colorResource(id = R.color.primaryText)
                 ) },
-            backgroundColor = if (themeSettings.isDarkTheme) colorResource(id = R.color.black) else colorResource(id = R.color.white),
+            backgroundColor = colorResource(id = R.color.primaryBackground),
             elevation = 0.dp
         )
 
@@ -64,7 +64,7 @@ fun SettingScreenCompose(viewModel: SettingsViewModel) {
                 text = stringResource(id = R.string.dark_theme_settings),
                 fontSize = dimensionResource(id = R.dimen.medium_font_16).value.sp,
                 fontFamily = FontFamily(Font(R.font.ys_display_regular)),
-                color = if (themeSettings.isDarkTheme) colorResource(id = R.color.white) else colorResource(id = R.color.black)
+                color = colorResource(id = R.color.primaryText)
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -98,7 +98,7 @@ fun SettingScreenCompose(viewModel: SettingsViewModel) {
                 text = stringResource(id = R.string.share_app_settings),
                 fontSize = dimensionResource(id = R.dimen.medium_font_16).value.sp,
                 fontFamily = FontFamily(Font(R.font.ys_display_regular)),
-                color = if (themeSettings.isDarkTheme) colorResource(id = R.color.white) else colorResource(id = R.color.black)
+                color = colorResource(id = R.color.primaryText)
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -108,7 +108,7 @@ fun SettingScreenCompose(viewModel: SettingsViewModel) {
                     .padding(end = 12.dp),
                 painter = painterResource(id = R.drawable.ic_share_24),
                 contentDescription = null,
-                tint = if (themeSettings.isDarkTheme) colorResource(id = R.color.white) else colorResource(id = R.color.gray)
+                tint = colorResource(id = R.color.primaryIcon)
             )
         }
 
@@ -126,7 +126,7 @@ fun SettingScreenCompose(viewModel: SettingsViewModel) {
                 text = stringResource(id = R.string.write_to_team_settings),
                 fontSize = dimensionResource(id = R.dimen.medium_font_16).value.sp,
                 fontFamily = FontFamily(Font(R.font.ys_display_regular)),
-                color = if (themeSettings.isDarkTheme) colorResource(id = R.color.white) else colorResource(id = R.color.black)
+                color = colorResource(id = R.color.primaryText)
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -136,7 +136,7 @@ fun SettingScreenCompose(viewModel: SettingsViewModel) {
                     .padding(end = 12.dp),
                 painter = painterResource(id = R.drawable.ic_support_24),
                 contentDescription = null,
-                tint = if (themeSettings.isDarkTheme) colorResource(id = R.color.white) else colorResource(id = R.color.gray)
+                tint = colorResource(id = R.color.primaryIcon)
             )
         }
 
@@ -154,7 +154,7 @@ fun SettingScreenCompose(viewModel: SettingsViewModel) {
                 text = stringResource(id = R.string.user_doc_settings),
                 fontSize = dimensionResource(id = R.dimen.medium_font_16).value.sp,
                 fontFamily = FontFamily(Font(R.font.ys_display_regular)),
-                color = if (themeSettings.isDarkTheme) colorResource(id = R.color.white) else colorResource(id = R.color.black)
+                color = colorResource(id = R.color.primaryText)
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -163,7 +163,7 @@ fun SettingScreenCompose(viewModel: SettingsViewModel) {
                 modifier = Modifier.padding(end = 12.dp),
                 painter = painterResource(id = R.drawable.ic_arrow_forward_24),
                 contentDescription = null,
-                tint = if (themeSettings.isDarkTheme) colorResource(id = R.color.white) else colorResource(id = R.color.gray)
+                tint = colorResource(id = R.color.primaryIcon)
             )
         }
 

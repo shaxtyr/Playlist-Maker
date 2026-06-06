@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.practicum.playlistmaker.search.domain.entity.Track
 import com.practicum.playlistmaker.search.domain.interactor.TracksInteractor
 import com.practicum.playlistmaker.search.domain.interactor.SearchHistoryInteractor
+import com.practicum.playlistmaker.utils.Event
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -15,12 +16,26 @@ class SearchTrackViewModel(private val tracksInteractor: TracksInteractor, priva
 
     companion object {
         const val SEARCH_DEBOUNCE_DELAY = 2000L
+        const val CLICK_DEBOUNCE_DELAY = 1000L
     }
+
+    private val searchTextLiveData = MutableLiveData<String>()
+    fun observeSearchText(): LiveData<String> = searchTextLiveData
 
     private val tracksStateLiveData = MutableLiveData<TracksState>()
     fun observeTracksState(): LiveData<TracksState> = tracksStateLiveData
+
+    private val navigateToMediaPlayerLiveData = MutableLiveData<Event<Track>>()
+    val observeNavigateToMediaPlayer: LiveData<Event<Track>> = navigateToMediaPlayerLiveData
+
     private var latestSearchText: String? = null
     private var searchJob: Job? = null
+
+    private var isClickAllowed = true
+
+    init {
+        loadHistory()
+    }
 
     fun searchDebounce(changedText: String, communicationProblemMessage: String, emptyListMessage: String) {
 
@@ -30,10 +45,23 @@ class SearchTrackViewModel(private val tracksInteractor: TracksInteractor, priva
 
         this.latestSearchText = changedText
         searchJob?.cancel()
+
         searchJob = viewModelScope.launch {
             delay(SEARCH_DEBOUNCE_DELAY)
             search(changedText, communicationProblemMessage, emptyListMessage)
         }
+    }
+
+    private fun clickDebounce(): Boolean {
+        val current = isClickAllowed
+        if (isClickAllowed) {
+            isClickAllowed = false
+            viewModelScope.launch {
+                delay(CLICK_DEBOUNCE_DELAY)
+                isClickAllowed = true
+            }
+        }
+        return current
     }
 
     fun search(newSearchText: String, communicationProblemMessage: String, emptyListMessage: String) {
@@ -48,6 +76,13 @@ class SearchTrackViewModel(private val tracksInteractor: TracksInteractor, priva
                 .collect { pair ->
                     processResult(pair.first, pair.second, communicationProblemMessage, emptyListMessage)
                 }
+        }
+    }
+
+    fun onTrackClick(track: Track) {
+        if (clickDebounce()) {
+            addTrackToHistory(track)
+            navigateToMediaPlayerLiveData.value = Event(track)
         }
     }
 
@@ -107,6 +142,12 @@ class SearchTrackViewModel(private val tracksInteractor: TracksInteractor, priva
         }
     }
 
+    fun updateSearchText(text: String) {
+        searchTextLiveData.value = text
+        if (text.isEmpty()) {
+            tracksStateLiveData.value = TracksState.Content(emptyList())
+        }
+    }
     fun clearHistory() {
         historyInteractor.clearHistory()
         tracksStateLiveData.value = TracksState.ContentHistory(emptyList())
