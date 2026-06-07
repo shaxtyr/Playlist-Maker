@@ -49,8 +49,8 @@ class MyPlaylistsFragment : Fragment() {
 
     private fun observeJumpingToCreatePlaylist() {
         myPlaylistsViewModel.observeNavigateToCreatePlaylist.observe(viewLifecycleOwner) { event ->
-            event.getContentIfNotHandled()?.let { playlist ->
-                openCreatePlaylist(playlist)
+            event.getContentIfNotHandled()?.let {
+                openCreatePlaylist()
             }
         }
     }
@@ -61,9 +61,9 @@ class MyPlaylistsFragment : Fragment() {
         )
     }
 
-    private fun openCreatePlaylist(playlist: Playlist) {
+    private fun openCreatePlaylist() {
         findNavController().navigate(
-            R.id.action_mediaFragment_to_creatingPlaylistFragment
+            R.id.action_mediaFragment_to_creatingPlaylistFragment,
         )
     }
 

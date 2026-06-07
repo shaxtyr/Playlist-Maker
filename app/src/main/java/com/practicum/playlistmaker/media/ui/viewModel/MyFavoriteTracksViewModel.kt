@@ -27,7 +27,7 @@ class MyFavoriteTracksViewModel(
     private var isClickAllowed = true
 
     init {
-        fillData()
+        refreshFavoriteTracks()
     }
 
     private fun clickDebounce(): Boolean {
@@ -46,6 +46,10 @@ class MyFavoriteTracksViewModel(
         if (clickDebounce()) {
             navigateToMediaPlayerLiveData.value = Event(track)
         }
+    }
+
+    fun refreshFavoriteTracks() {
+        fillData()
     }
 
     fun fillData() {

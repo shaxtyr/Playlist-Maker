@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
@@ -33,6 +34,8 @@ fun ItemPlaylistCompose(
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
+    val cleanPath = playlist.imagePath.removePrefix("file:///")
+
     val trackCountText = context.resources.getQuantityString(
         R.plurals.track_count,
         playlist.numberOfTracks,
@@ -44,10 +47,13 @@ fun ItemPlaylistCompose(
             .fillMaxWidth()
             .clickable { onClick() }
     ) {
+
         AsyncImage(
-            model = if (playlist.imagePath.isNotBlank()) Uri.fromFile(File(playlist.imagePath)) else R.drawable.placeholder_104,
+            model = Uri.fromFile(File(cleanPath)),
+            placeholder = painterResource(id = R.drawable.placeholder_104),
+            error = painterResource(id = R.drawable.placeholder_104),
             contentDescription = null,
-            contentScale = ContentScale.Crop,
+            contentScale = ContentScale.None,
             modifier = Modifier
                 .fillMaxSize()
                 .aspectRatio(1f)

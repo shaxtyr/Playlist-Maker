@@ -35,6 +35,7 @@ fun FavoriteTracksScreenCompose(
     onTrackClick: (Track) -> Unit
 ) {
     val favoriteTracksState by viewModel.observeFavoriteTracksState().observeAsState()
+    viewModel.refreshFavoriteTracks()
 
     Box(
         modifier = Modifier

@@ -30,7 +30,7 @@ class MyPlaylistsViewModel(
     private var isClickAllowed = true
 
     init {
-        fillData()
+        refreshPlaylists()
     }
 
     fun onPlaylistClick(playlist: Playlist) {
@@ -57,6 +57,10 @@ class MyPlaylistsViewModel(
         return current
     }
 
+    fun refreshPlaylists() {
+        fillData()
+    }
+
     fun fillData() {
         viewModelScope.launch {
             playlistInteractor
@@ -79,7 +83,6 @@ class MyPlaylistsViewModel(
             renderPlaylistState(
                 PlaylistState.Content(playlists)
             )
-            fillData()
         }
 
     }

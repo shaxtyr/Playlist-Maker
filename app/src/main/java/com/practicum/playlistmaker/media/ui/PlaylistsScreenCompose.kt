@@ -41,6 +41,7 @@ fun PlaylistsScreenCompose(
 ) {
 
     val playlistState by viewModel.observePlaylistState().observeAsState()
+    viewModel.refreshPlaylists()
 
     Column(
         modifier = Modifier
