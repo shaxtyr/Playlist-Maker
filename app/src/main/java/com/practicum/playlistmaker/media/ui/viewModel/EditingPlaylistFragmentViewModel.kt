@@ -8,7 +8,7 @@ import com.practicum.playlistmaker.media.domain.interactor.PlaylistInteractor
 import kotlinx.coroutines.launch
 
 class EditingPlaylistFragmentViewModel(
-    private val playlistInteractor: PlaylistInteractor
+    private val playlistInteractor: PlaylistInteractor,
 ) : CreatingPlaylistFragmentViewModel(playlistInteractor) {
 
     private val playlistLiveData = MutableLiveData<Playlist>()

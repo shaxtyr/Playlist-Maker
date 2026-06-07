@@ -9,6 +9,8 @@ import com.practicum.playlistmaker.R
 import com.practicum.playlistmaker.media.domain.entity.Playlist
 import com.practicum.playlistmaker.media.domain.interactor.PlaylistInteractor
 import com.practicum.playlistmaker.media.ui.PlaylistState
+import com.practicum.playlistmaker.utils.Event
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MyPlaylistsViewModel(
@@ -18,6 +20,46 @@ class MyPlaylistsViewModel(
 
     private val playlistStateLiveData = MutableLiveData<PlaylistState>()
     fun observePlaylistState(): LiveData<PlaylistState> = playlistStateLiveData
+
+    private val navigateToPlaylistDetailsLiveData = MutableLiveData<Event<Playlist>>()
+    val observeNavigateToPlaylistDetails: LiveData<Event<Playlist>> = navigateToPlaylistDetailsLiveData
+
+
+    private val navigateToCreatePlaylistLiveData = MutableLiveData<Event<Playlist>>()
+    val observeNavigateToCreatePlaylist: LiveData<Event<Playlist>> = navigateToCreatePlaylistLiveData
+    private var isClickAllowed = true
+
+    init {
+        refreshPlaylists()
+    }
+
+    fun onPlaylistClick(playlist: Playlist) {
+        if (clickDebounce()) {
+            navigateToPlaylistDetailsLiveData.value = Event(playlist)
+        }
+    }
+
+    fun onPlaylistCreate(playlist: Playlist) {
+        if (clickDebounce()) {
+            navigateToCreatePlaylistLiveData.value = Event(playlist)
+        }
+    }
+
+    private fun clickDebounce(): Boolean {
+        val current = isClickAllowed
+        if (isClickAllowed) {
+            isClickAllowed = false
+            viewModelScope.launch {
+                delay(CLICK_DEBOUNCE_DELAY)
+                isClickAllowed = true
+            }
+        }
+        return current
+    }
+
+    fun refreshPlaylists() {
+        fillData()
+    }
 
     fun fillData() {
         viewModelScope.launch {
@@ -47,6 +89,11 @@ class MyPlaylistsViewModel(
 
     private fun renderPlaylistState(state: PlaylistState) {
         playlistStateLiveData.postValue(state)
+    }
+
+    companion object {
+        private const val CLICK_DEBOUNCE_DELAY = 1000L
+
     }
 
 }

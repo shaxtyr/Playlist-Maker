@@ -9,7 +9,8 @@ import androidx.lifecycle.viewModelScope
 import com.practicum.playlistmaker.media.domain.interactor.FavoriteTracksInteractor
 import com.practicum.playlistmaker.media.ui.FavoriteTracksState
 import com.practicum.playlistmaker.search.domain.entity.Track
-import kotlinx.coroutines.Dispatchers
+import com.practicum.playlistmaker.utils.Event
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MyFavoriteTracksViewModel(
@@ -19,6 +20,37 @@ class MyFavoriteTracksViewModel(
 
     private val favoriteTracksStateLiveData = MutableLiveData<FavoriteTracksState>()
     fun observeFavoriteTracksState(): LiveData<FavoriteTracksState> = favoriteTracksStateLiveData
+
+    private val navigateToMediaPlayerLiveData = MutableLiveData<Event<Track>>()
+    val observeNavigateToMediaPlayer: LiveData<Event<Track>> = navigateToMediaPlayerLiveData
+
+    private var isClickAllowed = true
+
+    init {
+        refreshFavoriteTracks()
+    }
+
+    private fun clickDebounce(): Boolean {
+        val current = isClickAllowed
+        if (isClickAllowed) {
+            isClickAllowed = false
+            viewModelScope.launch {
+                delay(CLICK_DEBOUNCE_DELAY)
+                isClickAllowed = true
+            }
+        }
+        return current
+    }
+
+    fun onTrackClick(track: Track) {
+        if (clickDebounce()) {
+            navigateToMediaPlayerLiveData.value = Event(track)
+        }
+    }
+
+    fun refreshFavoriteTracks() {
+        fillData()
+    }
 
     fun fillData() {
         viewModelScope.launch {
@@ -48,6 +80,11 @@ class MyFavoriteTracksViewModel(
 
     private fun renderFavoriteTracksState(state: FavoriteTracksState) {
         favoriteTracksStateLiveData.postValue(state)
+    }
+
+    companion object {
+        private const val CLICK_DEBOUNCE_DELAY = 1000L
+
     }
 
 }

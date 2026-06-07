@@ -1,5 +1,7 @@
 [versions]
+activityCompose = "1.13.0"
 agp = "8.12.0"
+coilCompose = "2.7.0"
 kotlin = "2.2.0"
 coreKtx = "1.16.0"
 junit = "4.13.2"
@@ -11,18 +13,30 @@ activity = "1.10.1"
 constraintlayout = "2.2.1"
 glide = "4.14.2"
 gson = "2.10"
+materialVersion = "1.11.2"
 navigationFragmentKtx = "2.5.3"
 retrofit2 = "2.9.0"
 koin = "3.3.0"
 fragment = "1.5.5"
+ui = "1.11.2"
 viewpager2 = "1.0.0"
 kotlinx-coroutines = "1.3.9"
 room = "2.8.4"
+material3 = "1.4.0"
+runtimeLivedata = "1.11.2"
+foundationLayout = "1.11.2"
+foundation = "1.11.2"
+tvMaterial = "1.1.0"
 
 [libraries]
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-material = { module = "androidx.compose.material:material", version.ref = "materialVersion" }
 androidx-navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
 androidx-navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigationFragmentKtx" }
+androidx-ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
+androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "ui" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -45,8 +59,14 @@ glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = 
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 retrofit2 = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit2" }
 converterGson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit2" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
+androidx-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-tv-material = { group = "androidx.tv", name = "tv-material", version.ref = "tvMaterial" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
