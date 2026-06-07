@@ -58,18 +58,18 @@
     <string name="my_covers">mycovers</string>
     <string name="file_name_time_stamp">"cover_%1$d.jpg</string>
 
-    <plurals name="track_count">
-        <item quantity="one">%d трек</item>
-        <item quantity="few">%d трека</item>
-        <item quantity="many">%d треков</item>
-        <item quantity="other">%d треков</item>
-    </plurals>
-
     <plurals name="minutes_count">
         <item quantity="one">%d минута</item>
         <item quantity="few">%d минуты</item>
         <item quantity="many">%d минут</item>
         <item quantity="other">%d минут</item>
+    </plurals>
+
+    <plurals name="track_count">
+        <item quantity="one">%d трек</item>
+        <item quantity="few">%d трека</item>
+        <item quantity="many">%d треков</item>
+        <item quantity="other">%d трека</item>
     </plurals>
 
     <string name="total_time_tracks">"%1$s %2$s</string>
